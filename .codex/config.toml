@@ -1,0 +1,3 @@
+[mcp_servers.coop-anything]
+command = "python3"
+args = ["/workspace/coop-anything/tools/mcp/coop_mcp.py"]

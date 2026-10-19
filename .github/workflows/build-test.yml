@@ -1,0 +1,29 @@
+name: Build and managed regression checks
+on:
+  push:
+    branches: [port/tld-2.55-audit]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: dotnet restore SkyCoop.csproj --locked-mode
+      - run: dotnet build SkyCoop.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
+      - run: python3 tools/run_tests.py --mutation-check
+      - run: python3 tools/check_reproducible.py
+      - run: python3 tools/check_package.py
+      - run: python3 tools/package_test_build.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: SkyCoop-2.55-two-player-test
+          path: artifacts/*
+          if-no-files-found: error

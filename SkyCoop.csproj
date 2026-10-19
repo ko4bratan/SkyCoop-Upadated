@@ -16,7 +16,14 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>SkyCoop</AssemblyName>
     <RootNamespace>SkyCoop</RootNamespace>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>12.0</LangVersion>
+    <Deterministic>true</Deterministic>
+    <PathMap>$(MSBuildProjectDirectory)=/_/SkyCoop</PathMap>
+    <!-- Source archives and Git checkouts must produce identical mod binaries. -->
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+    <EnableSourceLink>false</EnableSourceLink>
+    <DeterministicSourcePaths>false</DeterministicSourcePaths>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <Configurations>Debug;Release;Dedicated;Dedicated Linux</Configurations>
@@ -64,6 +71,7 @@
   <ItemGroup>
     <Compile Remove="bin\**" />
     <Compile Remove="obj\**" />
+    <Compile Remove="tests\**" />
   </ItemGroup>
 
   <!-- The interop package ships both the split UnityEngine.*Module assemblies and the legacy
@@ -98,16 +106,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Steamworks.NET" Version="$(SteamworksNetVersion)" />
+    <PackageReference Include="Steamworks.NET" Version="$(SteamworksNetVersion)" GeneratePathProperty="true" />
   </ItemGroup>
 
   <!-- Steamworks.NET ships next to SkyCoop.dll at runtime, so put a copy in the output folder
        rather than making whoever builds this go digging for it in the NuGet cache. -->
   <Target Name="CopySteamworksToOutput" AfterTargets="Build">
     <ItemGroup>
-      <SteamworksRuntime Include="$(NuGetPackageRoot)steamworks.net\$(SteamworksNetVersion)\runtimes\win-x64\lib\netstandard2.1\Steamworks.NET.dll" />
+      <SteamworksRuntime Include="$(PkgSteamworks_NET)/runtimes/win-x64/lib/netstandard2.1/Steamworks.NET.dll" />
     </ItemGroup>
-    <Copy SourceFiles="@(SteamworksRuntime)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('%(SteamworksRuntime.FullPath)')" />
+    <Error Condition="!Exists('@(SteamworksRuntime)')" Text="Windows x64 Steamworks.NET runtime was not restored." />
+    <Copy SourceFiles="@(SteamworksRuntime)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
   </Target>
 
   <!-- Alternatively, reference the assemblies of a local installation. -->

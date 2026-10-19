@@ -1484,13 +1484,13 @@ namespace SkyCoop
         }
 
         // Null-safe asset lookup. Returns null rather than throwing when the bundle is unusable.
-        public static T BundleAsset<T>(string name) where T : Il2CppObjectBase
+        public static T BundleAsset<T>(string name) where T : UnityEngine.Object
         {
             if (LoadedBundle == null)
             {
                 return null;
             }
-            T asset = BundleAsset<T>(name);
+            T asset = LoadedBundle.LoadAsset<T>(name);
             if (asset == null && ReportedMissingAssets.Add(name))
             {
                 MelonLogger.Warning("[Object loader] Bundle has no asset named " + name);

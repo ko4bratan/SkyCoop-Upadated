@@ -20,3 +20,13 @@
 # Build output
 /bin/
 /obj/
+
+# Private development state and Python tool caches
+/local/
+__pycache__/
+*.pyc
+
+# Test output and packaged development builds
+/tests/**/bin/
+/tests/**/obj/
+/artifacts/
