@@ -7,10 +7,17 @@ param(
     [switch]$IsolatedCopy,
     [switch]$DisposableProfile,
     [switch]$MarkerOnly,
-    [switch]$PassThru
+    [switch]$PassThru,
+    [switch]$VerifiedSteamInstall,
+    [switch]$TestSave
 )
 $ErrorActionPreference = 'Stop'
-if (-not $IsolatedCopy -or -not $DisposableProfile) {
+if ($VerifiedSteamInstall) {
+    if (-not $TestSave) { throw 'Подтвердите использование тестового сохранения.' }
+    . (Join-Path $PSScriptRoot 'Launcher-Helpers.ps1')
+    $null=Assert-SkyCoopSteamVersion $GameDirectory
+    $null=Get-SkyCoopSteamManifest $GameDirectory
+} elseif (-not $IsolatedCopy -or -not $DisposableProfile) {
     throw 'Нужны отдельная TLD 2.55 и тестовый профиль Windows/сохранений. Копия папки игры не изолирует сохранения. Подтвердите оба условия.'
 }
 if ($Port -eq 26951) { throw 'Порт 26951 зарезервирован для гостя.' }

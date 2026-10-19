@@ -35,6 +35,9 @@ try {
     Add-Content (Join-Path $game 'tld.exe') 'изменение после обновления'
     $blocked=$false; try { Assert-SkyCoopSteamVersion $game } catch { $blocked=$true }
     if (-not $blocked) { throw 'Принята устаревшая проверка версии после изменения exe.' }
+    $blocked=$false
+    try { & (Join-Path $PackageDirectory 'Start-MinimalSurvival.ps1') -GameDirectory $game -Role Host -VerifiedSteamInstall -TestSave } catch { $blocked=$true }
+    if (-not $blocked) { throw 'UDP-запуск Steam-папки обошёл проверку версии.' }
     Set-Content (Join-Path $game 'secret-save.sav') 'Не включать'
     $zip=Join-Path $root 'logs.zip'
     Export-SkyCoopDiagnostics $game $zip

@@ -73,7 +73,7 @@ function Start-Seat([string]$Role) {
         Install-SkyCoopLauncherFiles $PSScriptRoot $game $confirm -SteamInstall
         $status.Text='Файлы установлены. Запускаем игру…'
         $script:LaunchedAt=[datetime]::UtcNow; $script:LaunchedFolder=$game
-        $options=@{GameDirectory=$game;Role=$Role;IsolatedCopy=$true;DisposableProfile=$true;Port=26950;PassThru=$true}
+        $options=@{GameDirectory=$game;Role=$Role;VerifiedSteamInstall=$true;TestSave=$true;Port=26950;PassThru=$true}
         if ($Role -eq 'Guest') { $options.HostAddress=$address.Text.Trim() }
         # Прямой вызов скрипта с параметрами: никакого eval и сборки команд из введённого IP.
         $script:GameProcess = & (Join-Path $PSScriptRoot 'Start-MinimalSurvival.ps1') @options
