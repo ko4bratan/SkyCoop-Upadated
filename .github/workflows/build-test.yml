@@ -49,3 +49,6 @@ jobs:
         run: |
           Expand-Archive artifact-download/SkyCoop-2.55-experimental-install.zip -DestinationPath installer-fixture
           ./tests/InstallerSmoke.ps1 -PackageDirectory (Join-Path $PWD 'installer-fixture')
+
+      - shell: powershell
+        run: ./tests/LauncherSmoke.ps1 -PackageDirectory (Join-Path $PWD 'installer-fixture')

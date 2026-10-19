@@ -11,6 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def package(output):
     files = {
+        'Открыть-SkyCoop.cmd': ROOT / 'packaging/Открыть-SkyCoop.cmd',
+        'SkyCoop-Launcher.ps1': ROOT / 'packaging/SkyCoop-Launcher.ps1',
+        'Launcher-Helpers.ps1': ROOT / 'packaging/Launcher-Helpers.ps1',
+        'LAUNCHER-RU.txt': ROOT / 'docs/LAUNCHER-RU.txt',
         'Mods/SkyCoop.dll': ROOT / 'bin/Release/SkyCoop.dll',
         'Mods/SkyCoop.pdb': ROOT / 'bin/Release/SkyCoop.pdb',
         'UserLibs/Steamworks.NET.dll': ROOT / 'bin/Release/Steamworks.NET.dll',

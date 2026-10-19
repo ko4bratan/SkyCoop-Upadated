@@ -1,5 +1,7 @@
 # Experimental installation — The Long Dark 2.55, Windows x64
 
+**Русский GUI:** распакуйте ZIP и откройте `Открыть-SkyCoop.cmd`. Подробности: `LAUNCHER-RU.txt`. Выбор папки не подтверждает версию игры; нужна отдельная TLD2.55 и тестовый профиль. Перед заменой файлов лаунчер запрашивает согласие.
+
 **Minimal Survival/render probe:** follow [REBORN-CHARACTER.md](REBORN-CHARACTER.md) first. It bypasses legacy resources and ModComponent, uses the existing UDP transport, and retains a marker when character assets are absent. The character exporter has NOT run here; neither character rendering nor two real clients are validated. Keep the working TLD2.01/2.02 installation and its save profile separate.
 
 **Not a playable release. Two real game clients have not been tested.** This kit contains all redistributable SkyCoop-owned runtime outputs, the managed Steam binding, symbols, diagnostics and installation tools. A complete working game installation is currently blocked by unvalidated/missing rebuilt resources and an item-pack format migration. The ZIP does not solve those blockers by bundling old assets.
