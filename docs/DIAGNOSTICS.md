@@ -1,0 +1,17 @@
+# Experimental diagnostics
+
+Logs are local only: **UserData/SkyCoop/Diagnostics/** under the game's working directory. No automatic upload is performed. Keep logs private until reviewed: exception messages and stack traces may contain local paths or network error details, even though SkyCoop does not explicitly record packet payloads, account IDs, inventory JSON or save contents in these new events.
+
+- `session-<id>.jsonl`: UTC timestamp, session identifier, event name, severity, occurrence count, bounded context and managed exception/stack trace. Events are thread-safe and repeated names are rate limited to one emission per five seconds. Context is capped at 2 KiB, exception text at 12 KiB. Each session rotates at about 4 MiB into one `.previous` file; old sessions are retained for crash correlation and can be archived/deleted manually.
+- `patch-manifest.json`: complete lists of applied and failed patch classes from the latest startup. A skipped patch invalidates the affected test until classified and fixed. Successful startup is not compatibility evidence.
+- `startup.identity` and `startup.file.*`: actual observed game/Unity/loader/.NET/OS versions and SHA-256 identities of this mod, Steam binding and available resource files. Missing files are explicit. The logged capacity is the configured slot capacity, not proof of the actual player count.
+- `connection.*`: connection attempt/socket/probe/receive/send failures, scene initialization and quit requests; no full endpoint/account identifiers are deliberately added. Short datagrams are reported.
+- `sync.*`: packet-handler exceptions include packet ID, byte count and numeric seat/slot where available. The original exception is rethrown, so diagnostics do not turn a failed synchronization action into a fake success. Save-read/write exceptions record the key, not serialized save data.
+- `supporters.*`: optional HTTP and parsing failures. The download uses HttpClient with a 15-second timeout, observes exceptions and applies data through the main-thread queue.
+- `crash.*`: last-chance managed unhandled exceptions and unobserved task failures. A Harmony hook to Unity Application.CallLogCallback attempts to capture Unity error/exception/assert text; inspect its own entry in the patch manifest to confirm the hook applied.
+
+**Limits:** a managed logger cannot guarantee a record for a native IL2CPP access violation, stack overflow, deadlock, power loss or forced termination. Keep MelonLoader/Latest.log, Unity Player.log, any loader/Windows crash report and a copy of the package manifest. PDB symbols are shipped for managed stack traces; game/native symbols are not.
+
+On a failure: stop the test, retain both seats' logs with the UTC time and checklist gate, compare file identities, locate the first failed patch/packet/connection event, and record the expected versus observed shared state. Do not keep retrying on a valuable save. If the diagnostic directory is unwritable, the logger emits one console warning and avoids replacing the original gameplay exception with a logging exception.
+
+The Windows install preflight prints observed file hashes, loader assembly version and global .NET Desktop Runtime detection. It does not certify old resource compatibility or game playability. The scripts and managed logger have automated fixture tests; real Unity/socket execution is still pending two-client game tests.

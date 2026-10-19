@@ -29,7 +29,7 @@ def main():
         subprocess.run([sdk, 'restore', 'SkyCoop.csproj', '--locked-mode'], cwd=target, check=True)
         subprocess.run([sdk, 'build', 'SkyCoop.csproj', '-c', 'Release', '--no-restore',
                         '-p:ContinuousIntegrationBuild=true', '-v:q'], cwd=target, check=True)
-        for filename in ('SkyCoop.dll', 'Steamworks.NET.dll'):
+        for filename in ('SkyCoop.dll', 'SkyCoop.pdb', 'Steamworks.NET.dll'):
             original = digest(ROOT / 'bin/Release' / filename)
             rebuilt = digest(target / 'bin/Release' / filename)
             if original != rebuilt:

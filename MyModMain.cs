@@ -961,6 +961,7 @@ namespace SkyCoop
 
         public override void OnApplicationStart()
         {
+            RuntimeDiagnostics.Start();
             SetAppBackgroundMode();
             bool DedicatedServerWithRender = Environment.GetCommandLineArgs().Contains("-dedicated");
             DedicatedServerAppMode = DedicatedServerWithRender || Application.isBatchMode;
@@ -981,7 +982,8 @@ namespace SkyCoop
 
             MelonLogger.Msg($"[{Info.Name}] Version {Info.Version} loaded!");
 
-            LoadedBundle = AssetBundle.LoadFromFile("Mods\\multiplayerstuff.unity3d");
+            try { LoadedBundle = AssetBundle.LoadFromFile("Mods\\multiplayerstuff.unity3d"); }
+            catch (Exception error) { DiagnosticLog.Error("asset.bundle-load", error); LoadedBundle = null; }
             if (LoadedBundle == null)
             {
                 ReportUnusableBundle();
@@ -1084,6 +1086,7 @@ namespace SkyCoop
 
         public override void OnApplicationQuit()
         {
+            RuntimeDiagnostics.Connection("quit-requested");
             if (IReallyWantToQuit || DedicatedServerAppMode)
             {
                 if (InOnline())
@@ -1412,6 +1415,7 @@ namespace SkyCoop
 
         public override void OnLevelWasInitialized(int level)
         {
+            RuntimeDiagnostics.Connection("scene-initialized");
             if (KillOnUpdate == true)
             {
                 return;
@@ -1477,9 +1481,9 @@ namespace SkyCoop
                     + " models are unavailable until it is.");
                 return;
             }
-            MelonLogger.Error("[SkyCoop] The file is present but Unity refused it, which normally means it was"
-                + " built for an older Unity than this game uses (" + Application.unityVersion + ").");
-            MelonLogger.Error("[SkyCoop] The bundle has to be rebuilt in that Unity version. Multiplayer UI and"
+            MelonLogger.Error("[SkyCoop] The file is present but Unity refused it. Check loader managers, asset format and"
+                + " actual Unity version (" + Application.unityVersion + ").");
+            MelonLogger.Error("[SkyCoop] The bundle may require a compatible rebuild; a header mismatch alone is not proof. UI and"
                 + " player models are unavailable until then; the rest of the mod still runs.");
         }
 
@@ -1490,9 +1494,11 @@ namespace SkyCoop
             {
                 return null;
             }
-            T asset = LoadedBundle.LoadAsset<T>(name);
+            T asset = null;
+            DiagnosticLog.Guard("asset.lookup", () => asset = LoadedBundle.LoadAsset<T>(name), "asset=" + name);
             if (asset == null && ReportedMissingAssets.Add(name))
             {
+                DiagnosticLog.Event("asset.missing", name);
                 MelonLogger.Warning("[Object loader] Bundle has no asset named " + name);
             }
             return asset;

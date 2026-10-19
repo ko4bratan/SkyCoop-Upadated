@@ -19,7 +19,10 @@ def main():
         assert first.read_bytes() == second.read_bytes(), 'ZIP is not deterministic'
         with zipfile.ZipFile(first) as archive:
             names = set(archive.namelist())
-            expected = {'Mods/SkyCoop.dll', 'UserLibs/Steamworks.NET.dll', 'TEST-BUILD.md',
+            expected = {'Mods/SkyCoop.dll', 'UserLibs/Steamworks.NET.dll', 'Mods/SkyCoop.pdb', 'TWO-PLAYER-TEST.md',
+                        'INSTALL.md', 'DEPENDENCIES.md', 'ASSET-COMPATIBILITY.md', 'DIAGNOSTICS.md',
+                        'runtime-audit.json', 'asset-audit.json', 'Install-Experimental.ps1', 'Test-Installation.ps1',
+                        'Get-ExternalDependencies.ps1', 'external-dependencies.json',
                         'LICENSE.txt', 'licenses/Steamworks.NET-LICENSE.txt', 'manifest.json', 'SHA256SUMS'}
             assert names == expected, names
             assert archive.read('Mods/SkyCoop.dll') == (ROOT / 'bin/Release/SkyCoop.dll').read_bytes()
@@ -27,6 +30,8 @@ def main():
             manifest = json.loads(archive.read('manifest.json'))
             assert manifest['runtime_ready'] is False
             assert len(manifest['required_external_assets']) == 2
+            assert manifest['blockers']
+            assert json.loads(archive.read('external-dependencies.json'))['playable'] is False
             for name, digest in manifest['files'].items():
                 assert hashlib.sha256(archive.read(name)).hexdigest() == digest, name
             for line in archive.read('SHA256SUMS').decode().splitlines():

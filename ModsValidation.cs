@@ -23,7 +23,7 @@ namespace SkyCoop
                 return "null";
 
             byte[] byteHash;
-            using (SHA256 SHA256 = SHA256Managed.Create())
+            using (SHA256 SHA256 = SHA256.Create())
             {
                 using (FileStream fileStream = File.OpenRead(filePath))
                 {

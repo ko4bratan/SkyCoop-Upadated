@@ -154,6 +154,7 @@ namespace GameServer
         }
         public static void DoConnectToIp(string _ip)
         {
+            RuntimeDiagnostics.Connection("direct-ip-attempt");
             MPSaveManager.SaveLastConnectedServer(_ip);
             string newPort = "";
             string newIP = "";
@@ -190,6 +191,7 @@ namespace GameServer
             {
                 MyMod.RemoveWaitForConnect();
                 MyMod.DoOKMessage("Connection failed", D.Error);
+                DiagnosticLog.Event("connection.probe-failed", D.Error);
                 MelonLogger.Msg("Connection failed " + D.Error);
             }
         }
@@ -210,6 +212,7 @@ namespace GameServer
                 endPoint = new IPEndPoint(IPAddress.Parse(ip), ConnectPort);
                 socket = new UdpClient(_localPort);
                 socket.Connect(endPoint);
+                RuntimeDiagnostics.Connection("udp-socket-open");
                 MelonLogger.Msg("Open socket for " + endPoint.Address + ":" + endPoint.Port +" local port is "+ _localPort);
                 //IAsyncResult result = socket.BeginReceive(ReceiveCallback, null);
                 socket.BeginReceive(ReceiveCallback, null);
@@ -245,6 +248,7 @@ namespace GameServer
                 }
                 catch (Exception _ex)
                 {
+                    DiagnosticLog.Error("connection.udp-send", _ex);
                     MelonLogger.Msg($"Error sending data to server via UDP: {_ex}");
                 }
             }
@@ -266,18 +270,20 @@ namespace GameServer
                         endPoint = null;
                         socket.Close();
 
-                        MyMod.Disconnect();
+                        DiagnosticLog.Event("connection.short-datagram", "bytes=" + _data.Length);
+                        ThreadManager.ExecuteOnMainThread(() => { if (ReferenceEquals(ClientUser.udp, this)) MyMod.Disconnect(); });
                         MelonLogger.Msg("Connection failed");
                         return;
                     }
                     HandleData(_data);
                 }
-                catch
+                catch (Exception error)
                 {
+                    DiagnosticLog.Error("connection.udp-receive", error);
                     endPoint = null;
-                    socket.Close();
-                    MyMod.Disconnect();
-                    MelonLogger.Msg("Connection failed");
+                    socket?.Close();
+                    ThreadManager.ExecuteOnMainThread(() => { if (ReferenceEquals(ClientUser.udp, this)) MyMod.Disconnect(); });
+                    MelonLogger.Msg("Connection failed; see SkyCoop diagnostics");
                 }
             }
 
@@ -301,7 +307,8 @@ namespace GameServer
                             MelonLogger.Msg(System.ConsoleColor.Yellow, "[DebugTrafficCheck] Got packet ID " + _packetId);
                             MelonLogger.Msg(System.ConsoleColor.Yellow, "[DebugTrafficCheck] Packet size " + _packet.ReturnSize() + " bytes");
                         }
-                        packetHandlers[_packetId](_packet); // Call appropriate method to handle the packet
+                        DiagnosticLog.Guard("sync.client-handler", () => packetHandlers[_packetId](_packet),
+                            "packet=" + _packetId + ";bytes=" + _data.Length);
                     }
                 });
             }
@@ -309,8 +316,7 @@ namespace GameServer
             /// <summary>Disconnects from the server and cleans up the UDP connection.</summary>
             private void Disconnect()
             {
-                Disconnect();
-
+                socket?.Close();
                 endPoint = null;
                 socket = null;
             }

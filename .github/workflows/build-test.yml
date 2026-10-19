@@ -1,4 +1,4 @@
-name: Build and managed regression checks
+name: Experimental installation package and checks
 on:
   push:
     branches: [port/tld-2.55-audit]
@@ -17,13 +17,30 @@ jobs:
         with:
           python-version: '3.12'
       - run: dotnet restore SkyCoop.csproj --locked-mode
-      - run: dotnet build SkyCoop.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
+      - run: dotnet build SkyCoop.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true -warnaserror
       - run: python3 tools/run_tests.py --mutation-check
       - run: python3 tools/check_reproducible.py
+      - run: python3 tools/verify_runtime.py
+      - run: python3 tools/inspect_assets.py
+      - run: python3 -m unittest discover -s tests -p "test_*.py"
       - run: python3 tools/check_package.py
       - run: python3 tools/package_test_build.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: SkyCoop-2.55-two-player-test
+          name: SkyCoop-2.55-experimental-install
           path: artifacts/*
           if-no-files-found: error
+
+  installer-smoke:
+    needs: build
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: SkyCoop-2.55-experimental-install
+          path: artifact-download
+      - shell: pwsh
+        run: |
+          Expand-Archive artifact-download/SkyCoop-2.55-experimental-install.zip -DestinationPath installer-fixture
+          ./tests/InstallerSmoke.ps1 -PackageDirectory (Join-Path $PWD 'installer-fixture')

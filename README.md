@@ -1,13 +1,17 @@
 ﻿# SkyCoop
 
-# Game Version Compatibility
+# Experimental installation status
+
+This branch provides an experimental build for **The Long Dark 2.55**. It has not been validated with two real clients and is **not a playable-compatibility claim**. Use [INSTALL.md](docs/INSTALL.md), [runtime dependencies](docs/RUNTIME-DEPENDENCIES.md), [asset blockers](docs/ASSET-PROVENANCE.md) and the [two-player checklist](docs/TWO-PLAYER-TEST.md). The complete experimental installation ZIP is published by GitHub Actions.
+
+# Declared target
 
 This branch targets **The Long Dark 2.55** on **MelonLoader 0.7.x**, and supports the content of the
 *Tales from the Far Territory* DLC in multiplayer.
 
 | Branch | Game Versions | Status |
 |--------|--------------|--------|
-| this branch | 2.55 | Current port |
+| this branch | 2.55 | Experimental, game QA pending |
 | [BeforeTFTFT](https://github.com/Filigrani/SkyCoop/tree/BeforeTFTFT) | 2.01 – 2.02 | Legacy (MelonLoader 0.5.3) |
 | [main](https://github.com/Filigrani/SkyCoop/tree/main) | — | Legacy codebase (abandoned) |
 
@@ -46,7 +50,7 @@ dotnet build -c Release -p:UseLocalGameAssemblies=true -p:TLDPath="C:\Path\To\Th
 
 ## Installing
 
-Requires **MelonLoader 0.7.x** (tested against 0.7.3 on The Long Dark 2.55, Unity 6000.0.60f1).
+Experimental loader pin: **MelonLoader 0.7.3 Windows x64** and **.NET 6 Desktop Runtime x64**. Compile references remain 0.7.1; static reference resolution against the official 0.7.3 archive passes. The declared Unity version 6000.0.60f1 and game behavior still need verification on an actual 2.55 installation.
 
 | File | Location |
 | --- | --- |
@@ -64,9 +68,7 @@ The Long Dark loads `winhttp.dll`.
 Steam is used only to discover and join lobbies. If `steam_api64.dll` cannot be loaded the mod logs
 a warning and disables Steam lobbies; direct IP and dedicated servers are unaffected.
 
-`multiplayerstuff.unity3d` holds every multiplayer UI panel and player model, and Unity only accepts
-an asset bundle built for the Unity version the game ships. A bundle built against an older release
-is rejected, and the mod reports this on startup and runs without those assets.
+`multiplayerstuff.unity3d` holds every multiplayer UI panel and player model, and legacy resources are not validated for 2.55. Old editor headers alone do not prove load success or failure; the item pack also has a confirmed ModComponent 7 format blocker. See the asset report before attempting installation.
 
 Multiplayer for The Long Dark game
 

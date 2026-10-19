@@ -230,6 +230,7 @@ namespace GameServer
             }
             catch (Exception _ex)
             {
+                DiagnosticLog.Error("connection.server-receive", _ex);
                 Log($"Error receiving UDP data: {_ex}");
             }
         }

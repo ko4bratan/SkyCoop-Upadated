@@ -15,3 +15,5 @@ Ordinary sandboxed shell networking cannot reach the proxy; additional network p
 Private install identities, executable hashes, logs and saves belong in ignored local/. No game installation, executable identity or required asset bundle/component was provided. README claims about Unity 6000.0.60f1 and MelonLoader 0.7.3 remain unverified; package resolution confirms a 0.7.1 compile reference. Compilation is possible without the game, real multiplayer testing is not.
 
 The current QA boundary and pending isolated two-client gates are in [TWO-PLAYER-TEST.md](TWO-PLAYER-TEST.md). Never upgrade the game QA label based on managed tests or a working menu alone.
+
+Experimental follow-up: warning-free build, structured diagnostics and Windows installer fixtures are now included. Read INSTALL.md, RUNTIME-DEPENDENCIES.md, WARNING-AUDIT.md and the expanded TWO-PLAYER-TEST.md. The exact experimental loader candidate is0.7.3; the unchanged compile reference remains0.7.1, with static AssemblyRef/direct-type resolution checked against the actual0.7.3 distribution. The item-pack migration blocker prevents a complete working installation claim.

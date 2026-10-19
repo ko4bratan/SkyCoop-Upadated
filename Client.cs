@@ -103,7 +103,8 @@ namespace GameServer
                             Log("[DebugTrafficCheck] Got packet ID " + _packetId);
                             Log("[DebugTrafficCheck] Packet contains " + _packet.ReturnSize() + " bytes");
                         }
-                        Server.packetHandlers[_packetId](id, _packet); // Call appropriate method to handle the packet
+                        DiagnosticLog.Guard("sync.server-handler", () => Server.packetHandlers[_packetId](id, _packet),
+                            "packet=" + _packetId + ";bytes=" + _packetBytes.Length + ";slot=" + id);
                     }
                 });
             }

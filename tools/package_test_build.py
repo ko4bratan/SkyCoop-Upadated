@@ -12,8 +12,19 @@ ROOT = Path(__file__).resolve().parents[1]
 def package(output):
     files = {
         'Mods/SkyCoop.dll': ROOT / 'bin/Release/SkyCoop.dll',
+        'Mods/SkyCoop.pdb': ROOT / 'bin/Release/SkyCoop.pdb',
         'UserLibs/Steamworks.NET.dll': ROOT / 'bin/Release/Steamworks.NET.dll',
-        'TEST-BUILD.md': ROOT / 'docs/TWO-PLAYER-TEST.md',
+        'TWO-PLAYER-TEST.md': ROOT / 'docs/TWO-PLAYER-TEST.md',
+        'INSTALL.md': ROOT / 'docs/INSTALL.md',
+        'DEPENDENCIES.md': ROOT / 'docs/RUNTIME-DEPENDENCIES.md',
+        'ASSET-COMPATIBILITY.md': ROOT / 'docs/ASSET-PROVENANCE.md',
+        'DIAGNOSTICS.md': ROOT / 'docs/DIAGNOSTICS.md',
+        'runtime-audit.json': ROOT / 'artifacts/runtime-audit.json',
+        'asset-audit.json': ROOT / 'artifacts/asset-audit.json',
+        'Install-Experimental.ps1': ROOT / 'packaging/Install-Experimental.ps1',
+        'Test-Installation.ps1': ROOT / 'packaging/Test-Installation.ps1',
+        'Get-ExternalDependencies.ps1': ROOT / 'packaging/Get-ExternalDependencies.ps1',
+        'external-dependencies.json': ROOT / 'packaging/external-dependencies.json',
         'LICENSE.txt': ROOT / 'LICENSE',
         'licenses/Steamworks.NET-LICENSE.txt': ROOT / 'third_party/Steamworks.NET-LICENSE.txt',
     }
@@ -31,7 +42,9 @@ def package(output):
         'qa': 'compile-verified; managed regressions only; two-player game QA NOT RUN',
         'runtime_ready': False,
         'required_external_assets': ['Mods/multiplayerstuff.unity3d', 'Mods/SkyCoop.modcomponent'],
-        'prerequisites': ['The Long Dark 2.55', 'MelonLoader 0.7.x (actual package references 0.7.1)', 'ModComponent for SkyCoop.modcomponent'],
+        'loader_pin': '0.7.3 Windows x64; exact experimental candidate, not runtime-certified',
+        'blockers': ['No real two-client game QA', 'Legacy component format requires migration; compatible rebuilt resources unavailable'],
+        'prerequisites': ['The Long Dark 2.55', '.NET 6 Desktop Runtime x64', 'MelonLoader 0.7.3 x64', 'Migrated compatible assets and ModComponent stack'],
         'files': {name: hashlib.sha256(data).hexdigest() for name, data in sorted(payloads.items())},
     }
     payloads['manifest.json'] = (json.dumps(manifest, indent=2, sort_keys=True) + '\n').encode()
@@ -47,13 +60,13 @@ def package(output):
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
     output.with_suffix(output.suffix + '.sha256').write_text(digest + '  ' + output.name + '\n')
     print(str(output) + '\nSHA-256: ' + digest)
-    print('Incomplete runtime kit: external asset bundle/component required; game multiplayer QA NOT RUN')
+    print('Experimental installation kit: external runtime/assets required; component migration BLOCKED; game QA NOT RUN')
     return manifest
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', type=Path, default=ROOT / 'artifacts/SkyCoop-2.55-two-player-test.zip')
+    parser.add_argument('--output', type=Path, default=ROOT / 'artifacts/SkyCoop-2.55-experimental-install.zip')
     args = parser.parse_args()
     package(args.output.resolve())
 

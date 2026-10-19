@@ -18,10 +18,13 @@ From the repository root:
 
 ```
 dotnet restore SkyCoop.csproj --locked-mode
-dotnet build SkyCoop.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true
+dotnet build SkyCoop.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true -warnaserror
 python3 tools/prepare_regression.py
 python3 tools/run_tests.py --mutation-check
 python3 tools/check_reproducible.py
+python3 tools/verify_runtime.py
+python3 tools/inspect_assets.py
+python3 -m unittest discover -s tests -p "test_*.py"
 python3 tools/check_package.py
 python3 tools/package_test_build.py
 ```
@@ -31,3 +34,5 @@ The managed regression executable uses net8.0 so it runs on the build SDK's runt
 Output: bin/Release/SkyCoop.dll plus the Windows x64 managed Steamworks.NET.dll. No game installation is needed to compile against the NuGet interop references. The output directory deliberately excludes game/interop DLLs. Required Unity assets are not in this repository, so the ZIP is an incomplete test kit until those externally sourced assets are supplied.
 
 CI uses the same SDK, locked restore, managed regressions, and test-kit packaging. It does not install or launch the game. In this managed cloud environment .NET named mutexes require an approved command outside the filesystem sandbox; ordinary sandbox execution fails at NuGet-Migrations. Network access also requires the configured network grant. No game or save files are modified by the build.
+
+The experimental package is artifacts/SkyCoop-2.55-experimental-install.zip. Runtime/asset reports are generated before packaging; all required files must be present or the packager fails. CI also runs the installer fixture on Windows. See INSTALL.md for the exact runtime candidate and unresolved resource blockers.

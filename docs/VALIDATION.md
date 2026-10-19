@@ -1,30 +1,32 @@
-# Validation record — 2026-10-19
+# Validation record — experimental installation follow-up
 
-## Checks completed
+The original 23f6e61 build/audit has been continued on the same development branch. The existing BeforeTFTFT and claude branches and original Git ancestry remain preserved.
 
-- Real fork and all existing branches inspected. BeforeTFTFT and claude/long-dark-multiplayer-compat-c7d6qo have identical source trees. Development branch is based on the original commit; neither existing branch was changed.
-- Prior Co-op Anything setup reused. MCP JSON-RPC initialize, tools/list (8 tools), directory search and revive skill read: PASS. Six skill symlinks resolve. Framework remains outside runtime dependencies and ZIP.
-- Microsoft .NET SDK 8.0.426 archive: official SHA-512 verified; committed SHA-256 is bb691c98abc8797eedbd48d3a766bc734214aed746e52e2691d8bbb268c60764.
-- Locked NuGet restore and Release compilation against TLD 2.55.0: PASS, **0 errors, 6 existing warnings**. Warnings concern obsolete WebClient/SHA256Managed and comparisons of value types with null; they remain visible and were not suppressed.
-- Managed regression suite: **6/6 PASS**. Covers actual extracted BundleAsset method body with a controlled bundle facade, plus the original main-thread queue source (order, next-tick behavior and concurrent producers).
-- SC-001 mutation: PASS. Restoring the recursive call in disposable generated test source makes the child process fail; production source remains fixed.
-- Reproducibility: PASS. Independent source directories, one with Git metadata and one without, produced identical SkyCoop.dll and Steamworks.NET.dll. SourceLink's Git metadata queries are disabled; an explicit PathMap normalizes source paths. The package manifest records source commit separately.
-- Packaging: PASS. Deterministic ZIP bytes, exact build-output bytes, internal hashes, expected file allowlist and explicit missing-assets status. Missing required DLLs correctly prevent packaging. Game/interop DLLs and Co-op Anything are excluded.
-- Python tool syntax compilation and Git diff whitespace check with upstream CRLF handling: PASS.
+## Completed locally
 
-## DLL SHA-256
+- Pinned SDK8.0.426, locked TLD2.55.0 dependencies, Release rebuild with warnings treated as errors: **0 compiler warnings, 0 errors**. All six previous warnings were audited and fixed rather than suppressed (WARNING-AUDIT.md).
+- **11/11 managed regressions PASS**: asset lookup and missing assets, original-recursion mutation, SHA-256 compatibility/disposal, Steam ID validity, main-thread scheduling, concurrent queue producers, diagnostic JSON/rate limiting/rethrow/report behavior. These tests use a controlled bundle facade and do not execute native Unity code.
+- Original SC-001 recursion restored in generated test source: child process fails as required. Production source remains fixed.
+- **3/3 Python asset-inspection tests PASS**: UnityFS identity, hash rejection and actual nested pack structure. Official legacy archive hashes and26 JSON files checked without executing downloaded content.
+- Static runtime audit:43 AssemblyRefs categorized;18 require external .NET6,3 resolve against official MelonLoader0.7.3,21 against the2.55 compile snapshot,1 against the shipped Steam binding. No unresolved non-framework references or missing direct types. Method/native/installed-game behavior remains unverified.
+- Independent-directory source rebuild: **SkyCoop.dll, SkyCoop.pdb and Steamworks.NET.dll are byte-identical**. A local restore initially reported NU1900 when vulnerability metadata was unreachable inside the network sandbox; this is a network audit warning, not a remaining C# warning. The network-enabled CI reruns restore.
+- Package checks: deterministic ZIP, exact payloads and checksums, explicit external/migration blockers, rejection of missing required outputs. Python syntax and upstream CRLF-aware Git whitespace checks pass.
+- Co-op Anything stdio MCP preflight remains available. It is development-only and excluded from the runtime and installation ZIP.
 
-```
-c73b72dffb48115f78c67b3c6a2ad0d36f860ce779f2d241f097dff27e1d82a4  SkyCoop.dll
-de85048ba8d7337627034cfb11481e76604a76a4d7f2263cc4785462e5d11bba  Steamworks.NET.dll
-```
+## Current shipped binary SHA-256
 
-The official legacy v13.2 assets were also inspected and hashed (ASSET-PROVENANCE.md); the Unity 2018.4.21f1 bundle is not validated for 2.55 and is excluded from the ZIP.
+`1649de3e2ee106e4017e3e242202fbda5270e09915f6cc15a7bf28a9869eff9b` — SkyCoop.dll
 
-## Checks not run
+`ac03851831d8b28bbe15447af07087702444dc2246ddccbf7693eaa9fb15c8c8` — SkyCoop.pdb
 
-Native Unity/IL2CPP asset loading, live Harmony target application, Steam ABI/lobbies, direct-IP host/client gameplay, save migration, DLC synchronization, latency/loss and clean two-client exit have **not** run. The environment has no installed The Long Dark or recorded store/build/executable identity. The external asset bundle and component are absent from the selected source tree. The test ZIP is a compiled development kit, not a complete validated multiplayer release. Required isolated game gates are documented in TWO-PLAYER-TEST.md.
+`de85048ba8d7337627034cfb11481e76604a76a4d7f2263cc4785462e5d11bba` — Steamworks.NET.dll
 
-## Source preservation
+## CI-only installer checks
 
-49 of the 52 original upstream files remain byte-for-byte unchanged. Only .gitignore, MyModMain.cs (two-line repair) and SkyCoop.csproj (build/reproducibility settings) differ. Original source remains in the untouched fork branches and Git ancestry; no synthetic snapshot history was pushed. New tests/tools/instructions are separate files.
+GitHub Actions builds and publishes the experimental ZIP. A separate Windows job exercises the actual PowerShell installer against a fake executable fixture: exact copies, preservation of old binaries in backups, refusal without isolated-copy acknowledgement, and rejection of a tampered dependency. This is a file-operation test, not a game launch. Consult the final Actions run status for the result.
+
+## Not run / blockers
+
+No actual game/store/executable identity was supplied. Two real game clients, native Unity asset loading, live Harmony application, full method-signature/interop verification, Steam native ABI, player/item/world replication, saves/travel/DLC/lag/exit remain **NOT TESTED**.
+
+The outer legacy bundle is Unity2018.4.21f1; the embedded item bundle is2018.4.2f1. The old item pack has a confirmed ModComponent7 layout/Addressables migration blocker. No licensed compatible resource rebuild has been obtained. Thus the artifact is an experimental installation kit with explicit external instructions, not a complete working multiplayer installation or a playable release.

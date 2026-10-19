@@ -3179,7 +3179,7 @@ namespace SkyCoop
                 return "null";
             }
             byte[] byteHash;
-            using (SHA256 SHA256 = SHA256Managed.Create())
+            using (SHA256 SHA256 = SHA256.Create())
             {
                 byteHash = SHA256.ComputeHash(Encoding.UTF8.GetBytes(base64));
             }

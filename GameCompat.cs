@@ -384,6 +384,7 @@ namespace SkyCoop
             }
             catch (Exception e)
             {
+                DiagnosticLog.Error("sync.save-write", e, "key=" + key);
                 MelonLoader.MelonLogger.Warning("[SkyCoop] Could not write \"" + key + "\" to save slot " + name + ": " + e.Message);
                 return false;
             }
@@ -401,6 +402,7 @@ namespace SkyCoop
             }
             catch (Exception e)
             {
+                DiagnosticLog.Error("sync.save-read", e, "key=" + key);
                 MelonLoader.MelonLogger.Warning("[SkyCoop] Could not read \"" + key + "\" from save slot " + name + ": " + e.Message);
             }
             return null;
@@ -638,6 +640,7 @@ namespace SkyCoop
             }
             catch (Exception e)
             {
+                DiagnosticLog.Error("ui.experience-mode", e);
                 MelonLoader.MelonLogger.Warning("[SkyCoop] Could not read the selected experience mode: " + e.Message);
             }
             return ExperienceModeType.Pilgrim;

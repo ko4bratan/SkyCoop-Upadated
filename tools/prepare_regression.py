@@ -7,8 +7,8 @@ from pathlib import Path
 import argparse
 
 
-def extract(source):
-    start = source.index('public static T BundleAsset<T>')
+def extract(source, signature='public static T BundleAsset<T>'):
+    start = source.index(signature)
     opening = source.index('{', start)
     depth = 1
     end = opening + 1
@@ -36,6 +36,14 @@ public static readonly HashSet<string> ReportedMissingAssets = new();
     output = root / 'tests/Regression/obj/BundleAssetUnderTest.g.cs'
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(code)
+    hashes = '''using System; using System.IO; using System.Text; using System.Security.Cryptography;
+namespace SkyCoop {
+public static class TextChecksumUnderTest {
+''' + extract((root / 'Shared.cs').read_text(encoding='utf-8-sig'), 'public static string SHA256CheckSum(string base64)') + '''
+}
+public static class FileChecksumUnderTest {
+''' + extract((root / 'ModsValidation.cs').read_text(encoding='utf-8-sig'), 'public static string SHA256CheckSum(string filePath)') + '\n}}\n'
+    output.with_name('ChecksumUnderTest.g.cs').write_text(hashes)
     print('Prepared production BundleAsset<T> body for isolated regression tests')
 
 

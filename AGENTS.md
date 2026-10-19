@@ -4,7 +4,7 @@ Target: The Long Dark 2.55. Use Co-op Anything as an external development playbo
 
 Framework checkout/snapshot: ../coop-anything. Read its AGENTS.md, then .agents/skills/coop-revive/SKILL.md and playbook/reviving-abandoned-mods.md. Workflow: coop-triage -> coop-research -> coop-revive -> coop-qa; use coop-reverse-engineer only for unknown game API details. The selected upstream already claims a 2.55 port: audit that implementation before proposing a rewrite. The console/decomp-port workflow is not appropriate.
 
-The user authorized repository downloads, local tool setup, building/testing the port, and transferring changes to ko4bratan/SkyCoop-Upadated on a separate development branch. Do not ask for those permissions again. Publishing issues, messages, PRs or releases requires separate authorization. No claim issue or framework contribution is authorized by this setup task.
+The user authorized repository downloads, local tool setup, building/testing the port, and transferring changes to ko4bratan/SkyCoop-Upadated on a separate development branch. Do not ask for those permissions again. The user also authorized publishing the experimental GitHub Actions artifact. Publishing issues, messages, PRs or releases still requires separate authorization. No claim issue or framework contribution is authorized by this setup task.
 
 Read docs/DEVELOPMENT.md, docs/AUDIT-2.55.md and BUGS.md, then local/ at each session start. Keep private game identities, install paths, logs and saves in ignored local/. Never modify the user's game installation or saves. Use isolated test copies.
 

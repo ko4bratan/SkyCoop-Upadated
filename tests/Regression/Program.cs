@@ -1,5 +1,6 @@
 using GameServer;
 using SkyCoop;
+using System.Text.Json;
 
 public class Il2CppObjectBase { }
 namespace UnityEngine { public class Object : Il2CppObjectBase { } }
@@ -41,7 +42,41 @@ public static class Program
 
     public static int Main()
     {
+        string logDirectory = Path.Combine(Path.GetTempPath(), "skycoop-diagnostics-test-" + Guid.NewGuid());
+        DiagnosticLog.Initialize(logDirectory);
         var cases = new (string Name, Action Run)[] {
+            ("Steam ID validity rejects default and accepts well-formed individual ID", () => {
+                Check(!new Steamworks.CSteamID(0).IsValid(), "default Steam ID accepted");
+                Check(new Steamworks.CSteamID(76561197960265729UL).IsValid(), "well-formed Steam ID rejected");
+            }),
+            ("SHA256 text remains wire-compatible", () => {
+                Check(TextChecksumUnderTest.SHA256CheckSum("abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "text checksum changed");
+                Check(TextChecksumUnderTest.SHA256CheckSum(null) == "null", "null sentinel changed");
+            }),
+            ("SHA256 file remains compatible and disposes stream", () => {
+                string path = Path.Combine(logDirectory, "checksum.txt");
+                File.WriteAllText(path, "abc");
+                Check(FileChecksumUnderTest.SHA256CheckSum(path) == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "file checksum changed");
+                File.Delete(path);
+                Check(FileChecksumUnderTest.SHA256CheckSum(path) == "null", "missing file sentinel changed");
+            }),
+            ("diagnostics retain packet failure and rethrow original", () => {
+                var failure = new InvalidOperationException("injected packet handler failure");
+                try { DiagnosticLog.Guard("test.handler", () => throw failure, "packet=42;bytes=12"); }
+                catch (Exception caught) { Check(ReferenceEquals(caught, failure), "original exception was replaced"); }
+                var line = File.ReadAllLines(Directory.GetFiles(logDirectory, "*.jsonl").Single()).Select(l => JsonDocument.Parse(l)).Single(d => d.RootElement.GetProperty("name").GetString() == "test.handler");
+                Check(line.RootElement.GetProperty("level").GetString() == "error", "lost severity");
+                Check(line.RootElement.GetProperty("context").GetString() == "packet=42;bytes=12", "lost packet context");
+                Check(line.RootElement.GetProperty("exception").GetString().Contains("injected packet handler failure"), "lost exception");
+            }),
+            ("diagnostics concurrent writes remain valid JSON and bounded repeats", () => {
+                Parallel.For(0, 1000, _ => DiagnosticLog.Event("test.repeat", "no payload"));
+                var entries = File.ReadAllLines(Directory.GetFiles(logDirectory, "*.jsonl").Single()).Select(l => JsonDocument.Parse(l)).ToArray();
+                Check(entries.Count(d => d.RootElement.GetProperty("name").GetString() == "test.repeat") == 1, "repeat flood not limited");
+                DiagnosticLog.Report("test-report.json", new { slots = new[] { 1, 2 }, outcome = "pending" });
+                using var report = JsonDocument.Parse(File.ReadAllText(Path.Combine(logDirectory, "test-report.json")));
+                Check(report.RootElement.GetProperty("slots").GetArrayLength() == 2, "report truncated");
+            }),
             ("absent bundle returns null without warnings", () => {
                 MyMod.LoadedBundle = null;
                 Check(MyMod.BundleAsset<Asset>("player") == null, "expected null");
@@ -95,6 +130,7 @@ public static class Program
             catch (Exception error) { failures++; Console.WriteLine("FAIL: " + test.Name + ": " + error.Message); }
         }
         Console.WriteLine($"RESULT: {cases.Length - failures}/{cases.Length} passed");
+        Directory.Delete(logDirectory, true);
         return failures == 0 ? 0 : 1;
     }
 }

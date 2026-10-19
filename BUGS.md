@@ -16,7 +16,7 @@ PatchLoader.cs:49-73 catches failures per patch and continues. Search of all sou
 
 - SaveSlotCompat.LoadDataFromSlot returns null on missing/error (GameCompat.cs:392-407); MyModMain.cs:730 calls GetHashCode without checking null. Determine dedicated rendered-server reachability and reproduce with an isolated missing/corrupt slot before fixing.
 - Save persistence callers often ignore a false return (Patches.cs:3006, 3079-3131). Exercise write failure/reload and verify whether users can lose multiplayer state. Actual loss has not been observed.
-- NuGet dependency availability, game/loader assembly coverage and Steam native ABI compatibility are unverified. Build and runtime logs are required.
+- Locked NuGet dependencies compile, and static assembly/type resolution against official MelonLoader0.7.3 passes. Full method behavior, regenerated game interop and native Steam ABI remain unverified; real runtime logs are required.
 
 ## Fixed in source; game validation pending
 
@@ -27,6 +27,14 @@ MyModMain.cs:1487-1499 now delegates to LoadedBundle.LoadAsset<T>(name) and cons
 ### SC-004 — Steamworks.NET omitted from build output
 
 SkyCoop.csproj concatenated NuGetPackageRoot and steamworks.net without a separator. With NUGET_PACKAGES set to a path without a trailing slash, the copy silently did nothing. It now uses GeneratePathProperty and PkgSteamworks_NET, explicitly selects the Windows x64 managed binding, and fails if missing. The Release directory and test ZIP contain the exact restored runtime DLL. No native Steam library is shipped or replaced.
+
+## Experimental follow-up fixes and open blockers
+
+- All six compiler warnings fixed (WARNING-AUDIT.md), with0 warnings under warning-as-error Release build.
+- Diagnostics now report startup identities/hashes, full patch manifest, packet-handler failures, connection errors and save exceptions. This improves evidence for SC-003; actual Harmony/game compatibility is still open.
+- ClientUser.UDP's unused private Disconnect method contained self-recursion; it now closes its own socket and clears state. Receive-failure game-state cleanup is queued on the main thread and ignores callbacks from an obsolete UDP instance. Live reconnect/travel tests remain required.
+- SC-002 now has a concrete nested-pack finding: original auto-mapped/scitems.unity3d is rejected by ModComponent7 and lacks Addressables catalogs. Outer Unity2018.4.21f1 and inner2018.4.2f1 bundles remain native-runtime untested. See ASSET-PROVENANCE.md.
+- Experimental loader candidate is0.7.3 x64 due official Unity6000 fixes; static assembly/type reference resolution passes, but game compatibility is not certified.
 
 ## Refuted
 

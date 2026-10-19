@@ -3841,7 +3841,7 @@ namespace SkyCoop
                         else
                         {
 
-                            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene() != null)
+                            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().IsValid())
                             {
                                 UseString = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
                             }

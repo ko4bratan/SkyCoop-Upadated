@@ -1,0 +1,46 @@
+{
+  "target": "Windows x64 The Long Dark2.55",
+  "playable": false,
+  "downloads": [
+    {
+      "id": "melonloader-0.7.3-x64",
+      "filename": "MelonLoader.x64.zip",
+      "url": "https://github.com/LavaGang/MelonLoader/releases/download/v0.7.3/MelonLoader.x64.zip",
+      "hash_algorithm": "SHA256",
+      "hash": "5b2b2f3d1cd42b59ec886c5bdc2663edae87a0097a4f4a8f58c0965a99dda416",
+      "status": "Exact experimental loader candidate; Unity6000 fixes; game runtime not verified."
+    },
+    {
+      "id": "dotnet-desktop-6.0.36-x64",
+      "filename": "windowsdesktop-runtime-6.0.36-win-x64.exe",
+      "url": "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/6.0.36/windowsdesktop-runtime-6.0.36-win-x64.exe",
+      "hash_algorithm": "SHA512",
+      "hash": "86fa63997e7e0dc6f3bf609e00880388dcf8d985c8f6417d07ebbbb1ecc957bf90214c8ff93f559a0e762b5626ba8c56c581f4d506aa4de7555f9792c2da254d",
+      "status": "Official Windows .NET6 Desktop Runtime prerequisite; install manually using Microsoft installer."
+    },
+    {
+      "id": "legacy-assets-v13.2",
+      "filename": "SkyCoopRelease-v13.2.zip",
+      "url": "https://github.com/Filigrani/SkyCoop/releases/download/v13.2/SkyCoopRelease.zip",
+      "hash_algorithm": "SHA256",
+      "hash": "6fee0723ebd72af22c5362aa7de966881875962305599dc38f321118e0b661b2",
+      "status": "Legacy resource archive for analysis only. Component has a confirmed format blocker; do not install its old DLLs or treat assets as compatible."
+    },
+    {
+      "id": "modcomponent-7.0.0",
+      "filename": "ModComponent-7.0.0.dll",
+      "url": "https://github.com/dommrogers/ModComponent/releases/download/7.0.0/ModComponent.dll",
+      "hash_algorithm": "SHA256",
+      "hash": "72182038dd95ea231d562c5ddbca67f4e608ba5b4df4119b0844f41c9136ad3d",
+      "status": "Migration candidate targeted TLD2.51. Incompatible with original item-pack layout; not certified for2.55."
+    },
+    {
+      "id": "modsettings-1.9.0",
+      "filename": "ModSettings-1.9.0.dll",
+      "url": "https://github.com/zeobviouslyfakeacc/ModSettings/releases/download/1.9.0/ModSettings.dll",
+      "hash_algorithm": "SHA256",
+      "hash": "50c4594048ade6676a3aa5c7d278a2d8a82f4ed3f489b6aeba01acd4396e59fe",
+      "status": "External ModComponent7 dependency candidate; its release targets TLD2.06/ML0.6.0. Not certified for2.55."
+    }
+  ]
+}

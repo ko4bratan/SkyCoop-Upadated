@@ -8,8 +8,11 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Steamworks.NET" HintPath="../../bin/Release/Steamworks.NET.dll" />
     <Compile Include="Program.cs" />
     <Compile Include="obj/BundleAssetUnderTest.g.cs" />
+    <Compile Include="obj/ChecksumUnderTest.g.cs" />
     <Compile Include="../../ThreadManager.cs" Link="ThreadManager.cs" />
+    <Compile Include="../../DiagnosticLog.cs" Link="DiagnosticLog.cs" />
   </ItemGroup>
 </Project>

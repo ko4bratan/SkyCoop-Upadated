@@ -253,7 +253,7 @@ namespace SkyCoop
                             JoinToLobby(request.m_rgchConnect.Replace("+connect_lobby ", ""));
                         }
                     }else{
-                        if (request.m_steamIDFriend != null)
+                        if (request.m_steamIDFriend.IsValid())
                         {
                             CSteamID clientId = request.m_steamIDFriend;
                             string IDstr = clientId.ToString();
@@ -315,7 +315,7 @@ namespace SkyCoop
                         CSteamID server;
                         if(SteamMatchmaking.GetLobbyGameServer(new CSteamID(request.m_ulSteamIDLobby), out _, out __, out server) == true)
                         {
-                            if (server != null)
+                            if (server.IsValid())
                             {
                                 MelonLogger.Msg("[SteamWorks.NET] Going to connect to server of the lobby");
                                 SteamFriends.SetRichPresence("connect", "+connect_lobby " + request.m_ulSteamIDLobby);
@@ -1180,7 +1180,8 @@ namespace SkyCoop
                         using (Packet _packet = new Packet(_data))
                         {
                             int _packetId = _packet.ReadInt();
-                            MyMod.SimUDPHandle(_packetId, _packet, _clientID);
+                            DiagnosticLog.Guard("sync.steam-server-handler", () => MyMod.SimUDPHandle(_packetId, _packet, _clientID),
+                                "packet=" + _packetId + ";bytes=" + _data.Length + ";slot=" + _clientID);
                         }
                     });
                 }else{
@@ -1195,7 +1196,8 @@ namespace SkyCoop
                         using (Packet _packet = new Packet(_data))
                         {
                             int _packetId = _packet.ReadInt();
-                            MyMod.SimUDPHandle_Client(_packetId, _packet);
+                            DiagnosticLog.Guard("sync.steam-client-handler", () => MyMod.SimUDPHandle_Client(_packetId, _packet),
+                                "packet=" + _packetId + ";bytes=" + _data.Length);
                         }
                     });
                 }

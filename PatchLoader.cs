@@ -17,6 +17,7 @@ namespace SkyCoop
     {
         public static readonly List<string> FailedPatches = new List<string>();
         public static int AppliedPatches { get; private set; }
+        private static readonly List<string> AppliedNames = new List<string>();
 
         public static void ApplyPatches(HarmonyLib.Harmony harmony)
         {
@@ -28,6 +29,7 @@ namespace SkyCoop
 
             AppliedPatches = 0;
             FailedPatches.Clear();
+            AppliedNames.Clear();
 
             Type[] types;
             try
@@ -37,6 +39,7 @@ namespace SkyCoop
             catch (ReflectionTypeLoadException e)
             {
                 types = Array.FindAll(e.Types, t => t != null);
+                foreach (Exception loaderError in e.LoaderExceptions) DiagnosticLog.Error("patch.type-load", loaderError);
             }
 
             foreach (Type type in types)
@@ -50,15 +53,20 @@ namespace SkyCoop
                 {
                     harmony.CreateClassProcessor(type).Patch();
                     AppliedPatches++;
+                    AppliedNames.Add(type.FullName);
+                    DiagnosticLog.Event("patch.applied." + type.FullName);
                 }
                 catch (Exception e)
                 {
                     string name = type.FullName + ": " + Describe(e);
                     FailedPatches.Add(name);
+                    DiagnosticLog.Error("patch.failed." + type.FullName, e);
                     MelonLogger.Warning("[SkyCoop] Skipped patch " + name);
                 }
             }
 
+            DiagnosticLog.Report("patch-manifest.json", new { applied = AppliedNames, failed = FailedPatches });
+            DiagnosticLog.Event("patch.summary", "applied=" + AppliedPatches + ";failed=" + FailedPatches.Count);
             if (FailedPatches.Count == 0)
             {
                 MelonLogger.Msg(System.ConsoleColor.Green, "[SkyCoop] Applied " + AppliedPatches + " patch classes.");
@@ -66,7 +74,7 @@ namespace SkyCoop
             else
             {
                 MelonLogger.Warning("[SkyCoop] Applied " + AppliedPatches + " patch classes, " + FailedPatches.Count
-                    + " did not fit this game version. The features behind them are disabled; the rest of the mod works.");
+                    + " did not fit this game version. Multiplayer correctness is NOT established; inspect diagnostics before testing.");
                 MelonLogger.Warning("[SkyCoop] This usually means the game updated. Check for a newer SkyCoop build.");
             }
         }
