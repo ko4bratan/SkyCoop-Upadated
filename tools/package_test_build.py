@@ -14,6 +14,11 @@ def package(output):
         'Mods/SkyCoop.dll': ROOT / 'bin/Release/SkyCoop.dll',
         'Mods/SkyCoop.pdb': ROOT / 'bin/Release/SkyCoop.pdb',
         'UserLibs/Steamworks.NET.dll': ROOT / 'bin/Release/Steamworks.NET.dll',
+        'REBORN-CHARACTER.md': ROOT / 'docs/REBORN-CHARACTER.md',
+        'Start-MinimalSurvival.ps1': ROOT / 'packaging/Start-MinimalSurvival.ps1',
+        'tools/prepare_reborn_project.py': ROOT / 'tools/prepare_reborn_project.py',
+        'tools/unity/SkyCoopCharacterBuild.cs': ROOT / 'tools/unity/SkyCoopCharacterBuild.cs',
+        'bundle-inventory.json': ROOT / 'artifacts/bundle-inventory.json',
         'TWO-PLAYER-TEST.md': ROOT / 'docs/TWO-PLAYER-TEST.md',
         'INSTALL.md': ROOT / 'docs/INSTALL.md',
         'DEPENDENCIES.md': ROOT / 'docs/RUNTIME-DEPENDENCIES.md',
@@ -41,10 +46,15 @@ def package(output):
         'source_dirty': dirty,
         'qa': 'compile-verified; managed regressions only; two-player game QA NOT RUN',
         'runtime_ready': False,
-        'required_external_assets': ['Mods/multiplayerstuff.unity3d', 'Mods/SkyCoop.modcomponent'],
+        'required_external_assets': [],
+        'default_test_mode': 'opt-in -skycoop-minimal: transport/remote-render probe only',
+        'optional_character_assets': ['Mods/SkyCoopResources/skycoop-character', 'Mods/SkyCoopResources/character.json'],
+        'character_assets_built': False,
+        'character_assets_redistributed': False,
+        'legacy_full_mode_assets': ['Mods/multiplayerstuff.unity3d', 'Mods/SkyCoop.modcomponent'],
         'loader_pin': '0.7.3 Windows x64; exact experimental candidate, not runtime-certified',
-        'blockers': ['No real two-client game QA', 'Legacy component format requires migration; compatible rebuilt resources unavailable'],
-        'prerequisites': ['The Long Dark 2.55', '.NET 6 Desktop Runtime x64', 'MelonLoader 0.7.3 x64', 'Migrated compatible assets and ModComponent stack'],
+        'blockers': ['No real two-client game QA', 'Character Unity export NOT RUN; actual game Unity version unknown', 'Full shared-world mode still needs item-pack migration'],
+        'prerequisites': ['The Long Dark 2.55', '.NET 6 Desktop Runtime x64', 'MelonLoader 0.7.3 x64', 'For full legacy mode only: migrated assets and ModComponent stack'],
         'files': {name: hashlib.sha256(data).hexdigest() for name, data in sorted(payloads.items())},
     }
     payloads['manifest.json'] = (json.dumps(manifest, indent=2, sort_keys=True) + '\n').encode()
@@ -60,7 +70,7 @@ def package(output):
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
     output.with_suffix(output.suffix + '.sha256').write_text(digest + '  ' + output.name + '\n')
     print(str(output) + '\nSHA-256: ' + digest)
-    print('Experimental installation kit: external runtime/assets required; component migration BLOCKED; game QA NOT RUN')
+    print('Experimental render probe kit: character export NOT RUN, marker fallback; full mode BLOCKED; game QA NOT RUN')
     return manifest
 
 

@@ -72,6 +72,9 @@
     <Compile Remove="bin\**" />
     <Compile Remove="obj\**" />
     <Compile Remove="tests\**" />
+    <Compile Remove="local\**" />
+    <Compile Remove="tools\**" />
+    <Compile Remove="artifacts\**" />
   </ItemGroup>
 
   <!-- The interop package ships both the split UnityEngine.*Module assemblies and the legacy

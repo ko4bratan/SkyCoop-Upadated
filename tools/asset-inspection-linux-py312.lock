@@ -1,0 +1,12 @@
+# Offline bundle parser only; Linux x64 Python3.12 wheels verified against official PyPI metadata.
+archspec==0.2.6 --hash=sha256:22463371fe8e9fa92fa144bf320cb445373a99f2ca6a5914c890e0c0b7816f8f
+astc_encoder_py==0.1.12 --hash=sha256:1a3c0efc3187e06fd1d5992a986220a5921498c35c44d1edbd9b2971c71a8a4f
+attrs==26.1.0 --hash=sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309
+brotli==1.2.0 --hash=sha256:072e7624b1fc4d601036ab3f4f27942ef772887e876beff0301d261210bca97f
+etcpak==0.9.15 --hash=sha256:b75248c4869c7fddf1e5bba4be02a504da08cffb17434dcdb5bc618869d4ea0a
+fsspec==2026.9.0 --hash=sha256:8dd6e646e99ea382bd85f97a45e6b526a442d79423a7dc673f1e2756d05fcb5f
+lz4==4.4.5 --hash=sha256:24092635f47538b392c4eaeff14c7270d2c8e806bf4be2a6446a378591c5e69e
+pillow==13.0.0 --hash=sha256:42d63be3af4f9b951b199b0a9d23365d37ab14687e6d77b74940432c8515c4ca
+pyfmodex==0.7.2 --hash=sha256:1c42112b788e80ee7b4b57ae25bbbc0a98eb1e32a8e7c9e1246698cdf72efa9d
+texture2ddecoder==1.0.6 --hash=sha256:09b98ea4d66e21aca42558727dc609a8a952e2b6eb09d0ee8e0e52ba14b7848a
+unitypy==1.23.0 --hash=sha256:9403f0216a520d8db6580af7b5007d1e39b5fc62597e82b576efd72011e1a0f1

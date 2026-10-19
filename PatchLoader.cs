@@ -34,7 +34,9 @@ namespace SkyCoop
             Type[] types;
             try
             {
-                types = typeof(PatchLoader).Assembly.GetTypes();
+                types = MinimalSurvival.Enabled
+                    ? typeof(RuntimeDiagnostics).GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)
+                    : typeof(PatchLoader).Assembly.GetTypes();
             }
             catch (ReflectionTypeLoadException e)
             {
@@ -65,7 +67,7 @@ namespace SkyCoop
                 }
             }
 
-            DiagnosticLog.Report("patch-manifest.json", new { applied = AppliedNames, failed = FailedPatches });
+            DiagnosticLog.Report("patch-manifest.json", new { applied = AppliedNames, failed = FailedPatches, legacyGameplayPatchesDisabled = MinimalSurvival.Enabled });
             DiagnosticLog.Event("patch.summary", "applied=" + AppliedPatches + ";failed=" + FailedPatches.Count);
             if (FailedPatches.Count == 0)
             {

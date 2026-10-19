@@ -45,6 +45,9 @@ namespace GameServer
 
             Log($"Server started on port {Port}.");
 
+#if(!DEDICATED)
+            if (MinimalSurvival.Enabled) return;
+#endif
             MPStats.Start();
 #if(!DEDICATED)
             MPStats.AddPlayer(MPSaveManager.GetSubNetworkGUID(), MyMod.MyChatName);
@@ -109,6 +112,9 @@ namespace GameServer
                 using (Packet _packet = new Packet(_data))
                 {
                     int _clientId = _packet.ReadInt();
+#if !DEDICATED
+                    if (MinimalSurvival.Enabled && _clientId != 0 && _clientId != 1) return;
+#endif
                     string SubNetworkGUID = "";
 
                     if(_clientId != -2 && _clientId != -1)
@@ -145,6 +151,14 @@ namespace GameServer
 
                     if (_clientId == 0)
                     {
+#if !DEDICATED
+                        if (MinimalSurvival.Enabled && clients[1].udp.endPoint != null
+                            && (clients[1].SubNetworkGUID != SubNetworkGUID || !clients[1].udp.endPoint.Equals(_clientEndPoint)))
+                        {
+                            DiagnosticLog.Failure("minimal.server-full", "One remote seat is already connected");
+                            return;
+                        }
+#endif
                         int freeSlot = 1;
                         bool ReConnection = false;
 

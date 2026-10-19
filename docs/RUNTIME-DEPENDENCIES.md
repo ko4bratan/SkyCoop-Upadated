@@ -1,5 +1,7 @@
 # Runtime dependency audit
 
+**Minimal mode:** ModComponent, ModSettings and both legacy bundles are bypassed. Optional locally exported Reborn render assets use a separate direct AssetBundle loader; see REBORN-CHARACTER.md. MelonLoader0.7.3/.NET6 remain external prerequisites. Native game compatibility is unverified.
+
 ## Exact loader choice and evidence limits
 
 **MelonLoader 0.7.3 Windows x64 is the exact experimental pin. Runtime compatibility with TLD 2.55 is not yet proven.** The [official 0.7.3 release](https://github.com/LavaGang/MelonLoader/releases/tag/v0.7.3) fixes Il2CppAssetBundleManager and Il2CppImageConversionManager for Unity 6000+ (#1122, #1144). This is a concrete reason to use 0.7.3 rather than the compile reference's older loader. The README's Unity 6000.0.60f1 claim still needs verification on the actual game copy.

@@ -19,9 +19,13 @@ jobs:
       - run: dotnet restore SkyCoop.csproj --locked-mode
       - run: dotnet build SkyCoop.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true -warnaserror
       - run: python3 tools/run_tests.py --mutation-check
+        env:
+          SKYCOOP_REQUIRE_UDP_TEST: '1'
       - run: python3 tools/check_reproducible.py
       - run: python3 tools/verify_runtime.py
       - run: python3 tools/inspect_assets.py
+      - run: python3 -m pip install --only-binary=:all: --require-hashes -r tools/asset-inspection-linux-py312.lock
+      - run: python3 tools/inventory_bundles.py
       - run: python3 -m unittest discover -s tests -p "test_*.py"
       - run: python3 tools/check_package.py
       - run: python3 tools/package_test_build.py

@@ -1840,7 +1840,9 @@ namespace SkyCoop
                 return;
             }
 
-            if (!MyMod.DedicatedServerAppMode)
+            if (!MyMod.DedicatedServerAppMode && MyMod.chatPanel != null
+                && MyMod.BundleAsset<GameObject>("MP_ChatText") != null
+                && MyMod.BundleAsset<GameObject>("MP_ChatText").GetComponent<UnityEngine.UI.Text>() != null)
             {
                 if (MyMod.ChatMessages.Count > MyMod.MaxChatMessages)
                 {
@@ -2522,6 +2524,9 @@ namespace SkyCoop
         }
         public static void InitAllPlayers()
         {
+#if !DEDICATED
+            if (MinimalSurvival.Enabled) { MinimalSurvival.EnsureSlots(); return; }
+#endif
             for (int i = 0; i < MyMod.MaxPlayers; i++)
             {
                 if (MyMod.playersData.Count < MyMod.MaxPlayers)
@@ -2557,7 +2562,7 @@ namespace SkyCoop
                     if (MyMod.players[i] == null)
                     {
                         GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("multiplayerPlayer");
-                        if (LoadedAssets == null)
+                        if (LoadedAssets == null || !AssetResources.LegacyAvatar(LoadedAssets))
                         {
                             // No player model in the bundle. The slot stays null; everything that
                             // reads players[] already treats null as "not present".

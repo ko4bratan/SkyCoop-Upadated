@@ -43,3 +43,10 @@ None.
 ## Out of reach in this environment
 
 Executable/store identity; full live 2.55 API behavior; valid-bundle reproduction; two-client game QA. Compilation against pinned 2.55 references now passes. These are environment gaps, not proof of defects.
+
+## Reborn/minimal Survival follow-up
+
+- Observed: official Reborn source project6000.0.60f1 provides SkyCoopPlayer prefab, FBX rig and Player.controller. Parameter contract and legacy hierarchy mismatch verified from pinned source7b0616e; detailed sources/unknowns in docs/REBORN-CHARACTER.md. Actual TLD runtime identity remains unknown.
+- Implemented, game validation pending: opt-in transport/render probe bypasses all legacy gameplay/asset initialization; keeps UDP framing and9055; adds optional9056 pose. Separate renderer never occupies legacy players[] or attaches gameplay components. Missing/bad render asset falls back to marker without closing transport. Pure interpolation and protocol behavior have managed checks.
+- SC-005: missing chatPanel/MP_ChatText previously dereferenced during welcome chat rendering; rendering now requires panel, prefab and Text component while network fanout remains outside that condition. Static trigger confirmed; live welcome test pending.
+- Open: no Unity Editor/license/game here, character export NOT RUN. No redistributable Reborn assets included; selected art/clip rights need specific review. Run is currently speed-scaled Walk, not an authored run clip. Full world/items/save/voice synchronization remains disabled in probe.

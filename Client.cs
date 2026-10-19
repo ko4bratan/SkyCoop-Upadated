@@ -103,6 +103,13 @@ namespace GameServer
                             Log("[DebugTrafficCheck] Got packet ID " + _packetId);
                             Log("[DebugTrafficCheck] Packet contains " + _packet.ReturnSize() + " bytes");
                         }
+                        #if !DEDICATED
+                        if (MinimalSurvival.Enabled && !Server.packetHandlers.ContainsKey(_packetId))
+                        {
+                            DiagnosticLog.Event("minimal.ignored-packet", "packet=" + _packetId);
+                            return;
+                        }
+#endif
                         DiagnosticLog.Guard("sync.server-handler", () => Server.packetHandlers[_packetId](id, _packet),
                             "packet=" + _packetId + ";bytes=" + _packetBytes.Length + ";slot=" + id);
                     }

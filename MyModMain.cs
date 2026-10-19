@@ -962,6 +962,12 @@ namespace SkyCoop
         public override void OnApplicationStart()
         {
             RuntimeDiagnostics.Start();
+            MinimalSurvival.Configure(Environment.GetCommandLineArgs());
+            if (MinimalSurvival.Enabled)
+            {
+                PatchLoader.ApplyPatches(HarmonyInstance);
+                return; // Keep stock Survival menus; no legacy asset/UI/gear initialization.
+            }
             SetAppBackgroundMode();
             bool DedicatedServerWithRender = Environment.GetCommandLineArgs().Contains("-dedicated");
             DedicatedServerAppMode = DedicatedServerWithRender || Application.isBatchMode;
@@ -982,7 +988,7 @@ namespace SkyCoop
 
             MelonLogger.Msg($"[{Info.Name}] Version {Info.Version} loaded!");
 
-            try { LoadedBundle = AssetBundle.LoadFromFile("Mods\\multiplayerstuff.unity3d"); }
+            try { LoadedBundle = AssetResources.Load(); }
             catch (Exception error) { DiagnosticLog.Error("asset.bundle-load", error); LoadedBundle = null; }
             if (LoadedBundle == null)
             {
@@ -1078,6 +1084,7 @@ namespace SkyCoop
 
         public override void OnPreferencesSaved()
         {
+            if (MinimalSurvival.Enabled) return;
             if (NoMelonQuit)
             {
                 Application.CancelQuit();
@@ -1086,6 +1093,7 @@ namespace SkyCoop
 
         public override void OnApplicationQuit()
         {
+            if (MinimalSurvival.Enabled) { MinimalSurvival.Stop(); return; }
             RuntimeDiagnostics.Connection("quit-requested");
             if (IReallyWantToQuit || DedicatedServerAppMode)
             {
@@ -1415,6 +1423,7 @@ namespace SkyCoop
 
         public override void OnLevelWasInitialized(int level)
         {
+            if (MinimalSurvival.Enabled) { DiagnosticLog.Event("minimal.scene-initialized", level.ToString()); return; }
             RuntimeDiagnostics.Connection("scene-initialized");
             if (KillOnUpdate == true)
             {
@@ -11453,6 +11462,7 @@ namespace SkyCoop
 
         public override void OnUpdate()
         {
+            if (MinimalSurvival.Enabled) { MinimalSurvival.Update(); return; }
             SetAppBackgroundMode();
             if (!KillOnUpdate)
             {
@@ -11895,6 +11905,7 @@ namespace SkyCoop
 
         public override void OnGUI()
         {
+            if (MinimalSurvival.Enabled) { MinimalSurvival.DrawStatus(); return; }
             DeBugMenu.Render();
         }
 

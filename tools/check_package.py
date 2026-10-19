@@ -19,7 +19,7 @@ def main():
         assert first.read_bytes() == second.read_bytes(), 'ZIP is not deterministic'
         with zipfile.ZipFile(first) as archive:
             names = set(archive.namelist())
-            expected = {'Mods/SkyCoop.dll', 'UserLibs/Steamworks.NET.dll', 'Mods/SkyCoop.pdb', 'TWO-PLAYER-TEST.md',
+            expected = {'REBORN-CHARACTER.md', 'Start-MinimalSurvival.ps1', 'tools/prepare_reborn_project.py', 'tools/unity/SkyCoopCharacterBuild.cs', 'bundle-inventory.json', 'Mods/SkyCoop.dll', 'UserLibs/Steamworks.NET.dll', 'Mods/SkyCoop.pdb', 'TWO-PLAYER-TEST.md',
                         'INSTALL.md', 'DEPENDENCIES.md', 'ASSET-COMPATIBILITY.md', 'DIAGNOSTICS.md',
                         'runtime-audit.json', 'asset-audit.json', 'Install-Experimental.ps1', 'Test-Installation.ps1',
                         'Get-ExternalDependencies.ps1', 'external-dependencies.json',
@@ -29,7 +29,10 @@ def main():
             assert archive.read('UserLibs/Steamworks.NET.dll') == (ROOT / 'bin/Release/Steamworks.NET.dll').read_bytes()
             manifest = json.loads(archive.read('manifest.json'))
             assert manifest['runtime_ready'] is False
-            assert len(manifest['required_external_assets']) == 2
+            assert manifest['required_external_assets'] == []
+            assert len(manifest['legacy_full_mode_assets']) == 2
+            assert manifest['character_assets_built'] is False
+            assert manifest['character_assets_redistributed'] is False
             assert manifest['blockers']
             assert json.loads(archive.read('external-dependencies.json'))['playable'] is False
             for name, digest in manifest['files'].items():

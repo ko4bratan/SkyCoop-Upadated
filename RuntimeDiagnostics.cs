@@ -13,6 +13,7 @@ namespace SkyCoop
             DiagnosticLog.Initialize(Path.Combine("UserData", "SkyCoop", "Diagnostics"));
             DiagnosticLog.Event("startup.identity", "mod=" + MyMod.BuildInfo.Version
                 + ";game=" + Application.version + ";unity=" + Application.unityVersion
+                + ";graphics=" + SystemInfo.graphicsDeviceType
                 + ";loader=" + typeof(MelonLoader.MelonMod).Assembly.GetName().Version
                 + ";runtime=" + Environment.Version + ";os=" + Environment.OSVersion);
             foreach (string file in new[] { "Mods/SkyCoop.dll", "UserLibs/Steamworks.NET.dll", "Mods/multiplayerstuff.unity3d", "Mods/SkyCoop.modcomponent" })

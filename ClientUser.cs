@@ -141,7 +141,7 @@ namespace GameServer
         public static void ConnectToServer()
         {
             myId = 0;
-            SubNetworkClientGUID = MPSaveManager.GetSubNetworkGUID();
+            SubNetworkClientGUID = MinimalSurvival.Enabled ? Guid.NewGuid().ToString("N") : MPSaveManager.GetSubNetworkGUID();
 
             udp = new UDP();
 
@@ -271,7 +271,7 @@ namespace GameServer
                         socket.Close();
 
                         DiagnosticLog.Event("connection.short-datagram", "bytes=" + _data.Length);
-                        ThreadManager.ExecuteOnMainThread(() => { if (ReferenceEquals(ClientUser.udp, this)) MyMod.Disconnect(); });
+                        ThreadManager.ExecuteOnMainThread(() => { if (ReferenceEquals(ClientUser.udp, this)) { if (MinimalSurvival.Enabled) MinimalSurvival.Stop(); else MyMod.Disconnect(); } });
                         MelonLogger.Msg("Connection failed");
                         return;
                     }
@@ -282,7 +282,7 @@ namespace GameServer
                     DiagnosticLog.Error("connection.udp-receive", error);
                     endPoint = null;
                     socket?.Close();
-                    ThreadManager.ExecuteOnMainThread(() => { if (ReferenceEquals(ClientUser.udp, this)) MyMod.Disconnect(); });
+                    ThreadManager.ExecuteOnMainThread(() => { if (ReferenceEquals(ClientUser.udp, this)) { if (MinimalSurvival.Enabled) MinimalSurvival.Stop(); else MyMod.Disconnect(); } });
                     MelonLogger.Msg("Connection failed; see SkyCoop diagnostics");
                 }
             }
@@ -307,6 +307,13 @@ namespace GameServer
                             MelonLogger.Msg(System.ConsoleColor.Yellow, "[DebugTrafficCheck] Got packet ID " + _packetId);
                             MelonLogger.Msg(System.ConsoleColor.Yellow, "[DebugTrafficCheck] Packet size " + _packet.ReturnSize() + " bytes");
                         }
+                        #if !DEDICATED
+                        if (MinimalSurvival.Enabled && !packetHandlers.ContainsKey(_packetId))
+                        {
+                            DiagnosticLog.Event("minimal.ignored-packet", "packet=" + _packetId);
+                            return;
+                        }
+#endif
                         DiagnosticLog.Guard("sync.client-handler", () => packetHandlers[_packetId](_packet),
                             "packet=" + _packetId + ";bytes=" + _data.Length);
                     }

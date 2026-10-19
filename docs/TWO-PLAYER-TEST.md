@@ -1,5 +1,7 @@
 # Two-player acceptance checklist — experimental The Long Dark 2.55
 
+**Current first gate:** use [REBORN-CHARACTER.md](REBORN-CHARACTER.md) for the minimal Survival transport/render probe and its two-PC checklist. The full legacy shared-world gates below remain blocked and cannot be claimed passed by that probe. No real game test has occurred.
+
 **Status: NOT RUN with real clients.** All boxes below are pending. Managed tests, metadata inspection and installer fixtures are separate checks. A human session is useful supporting evidence; it does not replace the planned in-game driver and shared-state assertions. No game-driving automation is shipped yet because an exact game installation and migrated resources are unavailable here.
 
 ## Run record (fill separately for host and guest)

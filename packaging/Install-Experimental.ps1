@@ -30,5 +30,5 @@ foreach ($relative in $allowed) {
     New-Item -ItemType Directory -Path (Split-Path $destination) -Force | Out-Null
     Copy-Item -LiteralPath $source -Destination $destination -Force
 }
-Write-Host 'Experimental mod binaries installed. Game assets, loader, runtime and item-pack migration remain external prerequisites.'
+Write-Host 'Experimental mod binaries installed. Loader/runtime remain external. Minimal probe needs no old bundles; see REBORN-CHARACTER.md for optional local character export.'
 Write-Host 'This is not a playable-compatibility result. Follow INSTALL.md and TWO-PLAYER-TEST.md.'

@@ -166,6 +166,9 @@ namespace GameServer
 
         public static void Welcome(int _toClient, int maxPlayers)
         {
+#if !DEDICATED
+            if (MinimalSurvival.Enabled) { MinimalSurvival.SendChallenge(_toClient); return; }
+#endif
             using (Packet _packet = new Packet((int)ServerPackets.welcome))
             {
                 _packet.Write(_toClient);

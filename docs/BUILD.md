@@ -36,3 +36,11 @@ Output: bin/Release/SkyCoop.dll plus the Windows x64 managed Steamworks.NET.dll.
 CI uses the same SDK, locked restore, managed regressions, and test-kit packaging. It does not install or launch the game. In this managed cloud environment .NET named mutexes require an approved command outside the filesystem sandbox; ordinary sandbox execution fails at NuGet-Migrations. Network access also requires the configured network grant. No game or save files are modified by the build.
 
 The experimental package is artifacts/SkyCoop-2.55-experimental-install.zip. Runtime/asset reports are generated before packaging; all required files must be present or the packager fails. CI also runs the installer fixture on Windows. See INSTALL.md for the exact runtime candidate and unresolved resource blockers.
+
+## Reborn render probe build
+
+Root project explicitly excludes `local/`, `tools/` and `artifacts/` C# files: read-only Reborn research sources and Unity Editor scripts must never enter SkyCoop.dll. Existing locked .NET build/repro commands apply unchanged. Managed tests link the real minimal state/pose codecs and interpolation class; UDP loopback is required in Actions (`SKYCOOP_REQUIRE_UDP_TEST=1`). A sandbox that forbids sockets reports that test SKIPPED, never passed. No test substitutes fake Unity clients for game QA.
+
+Deep legacy inventory: Python3.12/Linux x64, `python3 -m pip install --only-binary=:all: --require-hashes -r tools/asset-inspection-linux-py312.lock`, then `python3 tools/inspect_assets.py` and `python3 tools/inventory_bundles.py`. The parser writes names/type counts/hierarchy/assembly references only, not extracted art. It is build-time tooling, not a runtime dependency.
+
+The separate Windows Unity source/export commands are in REBORN-CHARACTER.md. .NET DLL/PDB/Steam binding are checked for byte reproducibility across paths; no byte-reproducibility or successful execution claim is made for the unrun Unity export.
