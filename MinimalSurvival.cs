@@ -18,7 +18,8 @@ namespace SkyCoop
     public static class MinimalSurvival
     {
         public static bool Enabled { get; private set; }
-        private static bool Host, Started, Failed, PeerReady;
+        private static bool Host, Started, Failed, PeerReady, Armed, UsingSteam;
+        public static string Status => Failed ? "Сеанс остановлен: проверьте логи" : !Armed ? "Выберите Steam или UDP в меню" : !Started ? "Загрузите тестовое Выживание на обоих ПК" : PeerReady ? "Сеанс принят, координат получено: " + ReceivedStates : "Ожидание второго игрока";
         private static string Address = "127.0.0.1", Token = "", Build = "", Game = "", Scene = "";
         private static int Port = 26950, Seed, LocalSlot;
         private static long Sequence, LastSequence = -1, ReceivedStates;
@@ -31,14 +32,16 @@ namespace SkyCoop
 
         public static void Configure(string[] args)
         {
-            Enabled = args.Contains("-skycoop-minimal");
+            Enabled = !args.Contains("-skycoop-legacy");
             if (!Enabled) return;
             Character.MarkerOnly = args.Contains("-skycoop-marker-only");
             try
             {
                 Host = args.Contains("-skycoop-test-host");
                 string join = args.FirstOrDefault(a => a.StartsWith("-skycoop-test-join="));
-                if (Host == (join != null)) throw new ArgumentException("Specify exactly one test role: host or join=IPv4");
+                if (!Host && join == null) return;
+                if (Host && join != null) throw new ArgumentException("Укажите только одну роль");
+                Armed = true;
                 if (join != null)
                 {
                     Address = join.Substring("-skycoop-test-join=".Length);
@@ -61,6 +64,9 @@ namespace SkyCoop
             try
             {
                 ThreadManager.UpdateMain();
+                if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu") SteamSession.Ensure();
+                SteamConnect.DoUpdate();
+                if (!Armed) return;
                 Scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
                 bool ready = Scene != "MainMenu" && Scene != "Boot" && Scene != "Empty"
                     && SaveGameSystem.m_CurrentGameMode == SaveSlotType.SANDBOX
@@ -82,13 +88,14 @@ namespace SkyCoop
                     else if (!Host)
                     {
                         NextSend = Time.realtimeSinceStartup + 1;
-                        using var retry = new Packet(); retry.Write(0); ClientUser.udp.SendData(retry);
+                        if (UsingSteam) SteamSession.Send(0, Array.Empty<byte>());
+                        else { using var retry = new Packet(); retry.Write(0); ClientUser.udp.SendData(retry); }
                     }
                 }
                 if (PeerReady && Time.realtimeSinceStartup - LastReceived > 10)
                 {
                     DiagnosticLog.Failure("minimal.peer-timeout", "No validated peer state for 10 seconds; test is not passing");
-                    Character.Show(false);
+                    PeerDisconnected();
                 }
                 else if (Remote != null && Remote.Scene == Scene)
                 {
@@ -121,7 +128,8 @@ namespace SkyCoop
             MyMod.MaxPlayers = 2;
             EnsureSlots();
             StartedAt = Time.realtimeSinceStartup;
-            if (Host)
+            if (UsingSteam) { if (!SteamSession.Ready) throw new InvalidOperationException("Steam lobby ещё не готов"); }
+            else if (Host)
             {
                 Server.clients.Clear(); Server.UsingSteamWorks = false;
                 Server.Start(1, Port); // One remote slot plus local host slot0.
@@ -153,7 +161,8 @@ namespace SkyCoop
                 Token = Guid.NewGuid().ToString("N"); PeerReady = false; ResetRemote();
                 using var packet = new Packet(MinimalProtocol.PacketId);
                 packet.Write(MinimalProtocol.Encode(Message(MinimalKind.Challenge)));
-                ServerSend.SendUDPData(client, packet, true);
+                if (UsingSteam) SteamSession.Send(MinimalProtocol.PacketId, MinimalProtocol.Encode(Message(MinimalKind.Challenge)));
+                else ServerSend.SendUDPData(client, packet, true);
             });
         }
 
@@ -170,7 +179,8 @@ namespace SkyCoop
         {
             using var packet = new Packet(MinimalProtocol.PacketId);
             packet.Write(MinimalProtocol.Encode(message));
-            if (Host) ServerSend.SendUDPData(1, packet, true); else ClientUser.udp.SendData(packet);
+            if (UsingSteam) SteamSession.Send(MinimalProtocol.PacketId, MinimalProtocol.Encode(message));
+            else if (Host) ServerSend.SendUDPData(1, packet, true); else ClientUser.udp.SendData(packet);
         }
 
         private static void ReceiveFromClient(int slot, Packet packet) => Receive(packet, true);
@@ -193,7 +203,7 @@ namespace SkyCoop
                     throw new InvalidDataException("Minimal session identity mismatch");
                 if (message.Kind == MinimalKind.Hello && onHost)
                 {
-                    PeerReady = true; Server.clients[1].Ready = true;
+                    PeerReady = true; if (!UsingSteam) Server.clients[1].Ready = true;
                     LastReceived = Time.realtimeSinceStartup; Send(Message(MinimalKind.Accepted));
                     DiagnosticLog.Event("minimal.peer-accepted", "actualSeats=2;scope=transform-only"); return;
                 }
@@ -222,7 +232,8 @@ namespace SkyCoop
         {
             using var packet = new Packet(MinimalPoseProtocol.PacketId);
             packet.Write(MinimalPoseProtocol.Encode(pose));
-            if (Host) ServerSend.SendUDPData(1, packet, true); else ClientUser.udp.SendData(packet);
+            if (UsingSteam) SteamSession.Send(MinimalPoseProtocol.PacketId, MinimalPoseProtocol.Encode(pose));
+            else if (Host) ServerSend.SendUDPData(1, packet, true); else ClientUser.udp.SendData(packet);
         }
         private static void ReceivePoseFromClient(int slot, Packet packet) => ReceivePose(packet);
         private static void ReceivePoseFromServer(Packet packet) => ReceivePose(packet);
@@ -239,18 +250,54 @@ namespace SkyCoop
 
         public static void Stop()
         {
-            try { if (Host) Server.udpListener?.Close(); else ClientUser.udp?.socket?.Close(); }
+            try { if (!UsingSteam) { if (Host) Server.udpListener?.Close(); else ClientUser.udp?.socket?.Close(); } }
             catch (Exception error) { DiagnosticLog.Error("minimal.stop", error); }
             try { Character.Dispose(); } catch (Exception error) { DiagnosticLog.Error("character.dispose", error); }
             ResetRemote(); PeerReady = false; Failed = true;
             DiagnosticLog.Event("minimal.stopped", "no save/world mutation performed by probe");
         }
 
+        public static void PeerDisconnected()
+        {
+            PeerReady = false; Token = ""; ResetRemote();
+            if (!UsingSteam)
+            {
+                if (Host && Server.clients.ContainsKey(1))
+                { Server.clients[1].udp.endPoint = null; Server.clients[1].SubNetworkGUID = ""; Server.clients[1].Ready = false; }
+                else if (!Host) ClientUser.myId = 0;
+            }
+            DiagnosticLog.Event("session.peer-disconnected", "Сброшены координаты и handshake; мир и сохранения не изменены");
+        }
+        public static void SelectSession(bool host, string address, bool steam)
+        {
+            if (!host && !steam && (!IPAddress.TryParse(address, out var ip) || ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork))
+                throw new ArgumentException("Нужен корректный IPv4 хоста");
+            ResetSession(); Host = host; UsingSteam = steam; LocalSlot = host ? 0 : 1;
+            if (!steam && !host) Address = address;
+            Armed = true; Failed = false; Application.runInBackground = true;
+            DiagnosticLog.Event("session.selected", steam ? "Steam lobby/P2P" : "UDP26950/26951");
+        }
+        public static void ResetSession()
+        {
+            Stop(); Started = false; Armed = false; Failed = false;
+            Token = ""; Sequence = 0; ReceivedStates = 0; NextSend = 0; NextReport = 0;
+            MyMod.iAmHost = false; ClientUser.myId = 0; ClientUser.udp = null;
+            lock (ThreadManager.executeOnMainThread) { ThreadManager.executeOnMainThread.Clear(); }
+        }
+        public static void ReceiveSteam(int id, byte[] payload)
+        {
+            if (!UsingSteam || !Started) return;
+            if (id == 0 && Host) { SendChallenge(1); return; }
+            using var packet = new Packet(payload);
+            if (id == MinimalProtocol.PacketId) Receive(packet, Host);
+            else if (id == MinimalPoseProtocol.PacketId) ReceivePose(packet);
+        }
+
         public static void DrawStatus()
         {
-            GUI.Label(new Rect(15, 15, 950, 80), "SkyCoop MINIMAL: " + (Host ? "host" : "guest")
+            GUI.Label(new Rect(15, 15, 950, 80), "SkyCoop: " + (Host ? "host" : "guest")
                 + " | " + (Failed ? "STOPPED — inspect logs" : !Started ? "load disposable Survival" : PeerReady ? "peer accepted, received states=" + ReceivedStates : "waiting for peer")
-                + " | " + Character.Status + "\nTransform probe only. NO shared items/world/saves. Real-game result remains unverified.");
+                + " | " + Character.Status + "\n" + Status + " — общий мир и сохранения не синхронизируются.");
         }
     }
 }

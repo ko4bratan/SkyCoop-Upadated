@@ -45,7 +45,7 @@ namespace SkyCoop
                     if (prefab == null) throw new InvalidDataException("Sanitized SkyCoopRemote prefab missing; raw Reborn bundle is not accepted");
                     // Reject scripts/physics before instantiation; disabled MonoBehaviours can still run Awake.
                     Validate(prefab);
-                    instance = GameObject.Instantiate(prefab); instance.SetActive(false);
+                    instance = GameObject.Instantiate(prefab); UnityEngine.Object.DontDestroyOnLoad(instance); instance.SetActive(false);
                     instance.name = "SkyCoop_Reborn_Remote_RENDER_ONLY";
                     foreach (Transform child in instance.GetComponentsInChildren<Transform>(true)) child.gameObject.layer = 0;
                     animator = instance.GetComponentInChildren<Animator>(true);
@@ -58,6 +58,7 @@ namespace SkyCoop
             }
             fallback = true;
             instance = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            UnityEngine.Object.DontDestroyOnLoad(instance);
             instance.name = "SkyCoop_Minimal_RemoteMarker_NO_RIG";
             var collider = instance.GetComponent<Collider>(); if (collider != null) { collider.enabled = false; UnityEngine.Object.Destroy(collider); }
             DiagnosticLog.Event("character.fallback", "connection retained; install locally rebuilt character bundle and manifest, then restart; no game assets supplied");
@@ -118,7 +119,7 @@ namespace SkyCoop
             if (instance != null) { instance.SetActive(false); UnityEngine.Object.Destroy(instance); }
             instance = null; animator = null;
         }
-        public void Dispose() { CleanupInstance(); if (bundle != null) bundle.Unload(true); bundle = null; }
+        public void Dispose() { CleanupInstance(); if (bundle != null) bundle.Unload(true); bundle = null; attempted = false; fallback = false; }
     }
 }
 #endif

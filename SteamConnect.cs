@@ -129,6 +129,7 @@ namespace SkyCoop
             }
             catch (EntryPointNotFoundException e)
             {
+                DiagnosticLog.Error("steam.init-native", e);
                 // The managed binding and the game's native steam_api64.dll come from different
                 // Steamworks SDK generations, so it is calling a function the game's library does
                 // not export. Almost always a stale Steamworks.NET.dll left in UserLibs.
@@ -144,6 +145,7 @@ namespace SkyCoop
             }
             catch (Exception e)
             {
+                DiagnosticLog.Error("steam.init", e);
                 MelonLogger.Warning("[Steamworks.NET] Steam is unavailable, so Steam lobbies are disabled."
                     + " Direct IP and dedicated servers still work. (" + e.GetType().Name + ": " + e.Message + ")");
                 CanUseSteam = false;
@@ -154,7 +156,7 @@ namespace SkyCoop
         {
             InstallSteamDllResolver();
 
-            if (SteamAPI.RestartAppIfNecessary(new AppId_t(305620)))
+            if (!MinimalSurvival.Enabled && SteamAPI.RestartAppIfNecessary(new AppId_t(305620)))
             {
                 Application.Quit();
                 return;
@@ -197,7 +199,7 @@ namespace SkyCoop
         public static bool StartSteam()
         {
             CanUseSteam = true;
-            Main.Run();
+            if (MinimalSurvival.Enabled) SteamSession.Initialize(); else Main.Run();
             return true;
         }
 
@@ -205,6 +207,11 @@ namespace SkyCoop
         {
             if (!CanUseSteam)
                 return;
+            if (MinimalSurvival.Enabled) {
+                try { SteamSession.Tick(); }
+                catch (Exception error) { CanUseSteam = false; DiagnosticLog.Error("steam.callbacks-disabled", error); }
+                return;
+            }
             Main.ListenData();
             SteamAPI.RunCallbacks();
         }

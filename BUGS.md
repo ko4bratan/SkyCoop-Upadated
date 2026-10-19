@@ -50,3 +50,11 @@ Executable/store identity; full live 2.55 API behavior; valid-bundle reproductio
 - Implemented, game validation pending: opt-in transport/render probe bypasses all legacy gameplay/asset initialization; keeps UDP framing and9055; adds optional9056 pose. Separate renderer never occupies legacy players[] or attaches gameplay components. Missing/bad render asset falls back to marker without closing transport. Pure interpolation and protocol behavior have managed checks.
 - SC-005: missing chatPanel/MP_ChatText previously dereferenced during welcome chat rendering; rendering now requires panel, prefab and Text component while network fanout remains outside that condition. Static trigger confirmed; live welcome test pending.
 - Open: no Unity Editor/license/game here, character export NOT RUN. No redistributable Reborn assets included; selected art/clip rights need specific review. Run is currently speed-scaled Walk, not an authored run clip. Full world/items/save/voice synchronization remains disabled in probe.
+
+## Steam / игровое меню — продолжение
+
+Реализовано, игровой тест не выполнен: выборочные Harmony hooks Panel_MainMenu.Initialize/Enable и Panel_Confirmation.OnConfirm/OnCancel; штатный BasicMenu для подменю. SteamSession использует существующий resolver и SDK20.2 lobby/P2P на отдельном канале17; сохранён отдельный UDP-путь. SteamEnvelope допускает только handshake/позиции/pose и не направляет данные в legacy gameplay RPC. Проверки типов/методов UI и протокола не являются тестом живого UI/Steam.
+
+Исправлены найденные по трассировке сценарии cleanup: stale callback закрытого UDP не должен остановить новый экземпляр; после timeout освобождается слот и nonce, сбрасывается клиентский id; renderer восстанавливается после reset и сохраняет отдельный объект между сценами. Live reconnect/travel ещё не подтверждены.
+
+Версия Steam-установки проверяется до записи: PE ProductVersion2.55 либо runtime identity с совпадающим exe SHA256. Неизвестные метаданные блокируют запись. Нет достоверного mapping Steam buildid→2.55 для первого запуска; это явный blocker, не заменён ручным предположением. См. STEAM-2.55-RU.md и матрицу legacy-подсистем. Общие сохранения/предметы не включены.

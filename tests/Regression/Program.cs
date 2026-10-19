@@ -105,6 +105,18 @@ public static class Program
                 Check(motion.At(12).X == 100 && motion.At(12).Speed == 0, "teleport did not reset history");
                 motion.Reset(); Check(motion.Push(new MinimalMessage { Sequence = 1 }, 1), "scene reset kept sequence");
             }),
+            ("Steam envelope preserves base protocol and refuses legacy gameplay RPC", () => {
+                var state = new MinimalMessage { Kind = MinimalKind.State, Sequence = 12, X = 3 };
+                var bytes = MinimalProtocol.Encode(state);
+                var decoded = SteamEnvelope.Decode(SteamEnvelope.Encode(MinimalProtocol.PacketId, bytes));
+                Check(decoded.Id == MinimalProtocol.PacketId && decoded.Payload.SequenceEqual(bytes), "Steam changed base wire payload");
+                Check(MinimalProtocol.Decode(decoded.Payload).Sequence == 12, "state lost");
+                foreach (byte[] invalid in new[] { new byte[3], new byte[1029], BitConverter.GetBytes(77), new byte[5] }) {
+                    bool rejected = false; try { SteamEnvelope.Decode(invalid); } catch (InvalidDataException) { rejected = true; }
+                    Check(rejected, "bad/legacy RPC accepted");
+                }
+                Check(SteamEnvelope.Decode(SteamEnvelope.Encode(0, Array.Empty<byte>())).Id == 0, "handshake lost");
+            }),
             ("Steam ID validity rejects default and accepts well-formed individual ID", () => {
                 Check(!new Steamworks.CSteamID(0).IsValid(), "default Steam ID accepted");
                 Check(new Steamworks.CSteamID(76561197960265729UL).IsValid(), "well-formed Steam ID rejected");

@@ -1,5 +1,7 @@
 # Experimental installation — The Long Dark 2.55, Windows x64
 
+Основная актуальная инструкция на русском: **STEAM-2.55-RU.md**. Добавлен путь существующей Steam-установки с проверкой версии; дальнейшие старые разделы об изолированных копиях относятся к прежней процедуре аудита. Полный кооператив не подтверждён.
+
 **Русский GUI:** распакуйте ZIP и откройте `Открыть-SkyCoop.cmd`. Подробности: `LAUNCHER-RU.txt`. Выбор папки не подтверждает версию игры; нужна отдельная TLD2.55 и тестовый профиль. Перед заменой файлов лаунчер запрашивает согласие.
 
 **Minimal Survival/render probe:** follow [REBORN-CHARACTER.md](REBORN-CHARACTER.md) first. It bypasses legacy resources and ModComponent, uses the existing UDP transport, and retains a marker when character assets are absent. The character exporter has NOT run here; neither character rendering nor two real clients are validated. Keep the working TLD2.01/2.02 installation and its save profile separate.

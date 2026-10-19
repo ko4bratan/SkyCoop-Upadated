@@ -19,7 +19,7 @@ def main():
         assert first.read_bytes() == second.read_bytes(), 'ZIP is not deterministic'
         with zipfile.ZipFile(first) as archive:
             names = set(archive.namelist())
-            expected = {'Открыть-SkyCoop.cmd', 'SkyCoop-Launcher.ps1', 'Launcher-Helpers.ps1', 'LAUNCHER-RU.txt', 'REBORN-CHARACTER.md', 'Start-MinimalSurvival.ps1', 'tools/prepare_reborn_project.py', 'tools/unity/SkyCoopCharacterBuild.cs', 'bundle-inventory.json', 'Mods/SkyCoop.dll', 'UserLibs/Steamworks.NET.dll', 'Mods/SkyCoop.pdb', 'TWO-PLAYER-TEST.md',
+            expected = {'STEAM-2.55-RU.md', 'Открыть-SkyCoop.cmd', 'SkyCoop-Launcher.ps1', 'Launcher-Helpers.ps1', 'LAUNCHER-RU.txt', 'REBORN-CHARACTER.md', 'Start-MinimalSurvival.ps1', 'tools/prepare_reborn_project.py', 'tools/unity/SkyCoopCharacterBuild.cs', 'bundle-inventory.json', 'Mods/SkyCoop.dll', 'UserLibs/Steamworks.NET.dll', 'Mods/SkyCoop.pdb', 'TWO-PLAYER-TEST.md',
                         'INSTALL.md', 'DEPENDENCIES.md', 'ASSET-COMPATIBILITY.md', 'DIAGNOSTICS.md',
                         'runtime-audit.json', 'asset-audit.json', 'Install-Experimental.ps1', 'Test-Installation.ps1',
                         'Get-ExternalDependencies.ps1', 'external-dependencies.json',

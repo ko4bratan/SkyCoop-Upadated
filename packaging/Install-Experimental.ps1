@@ -1,10 +1,16 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)][string]$GameDirectory,
-    [switch]$IsolatedCopy
+    [switch]$IsolatedCopy,
+    [switch]$VerifiedSteamInstall,
+    [switch]$OverwriteConfirmed
 )
 $ErrorActionPreference = 'Stop'
-if (-not $IsolatedCopy) { throw 'Use an isolated game copy with disposable saves; pass -IsolatedCopy to acknowledge.' }
+if ($VerifiedSteamInstall) {
+    . (Join-Path $PSScriptRoot 'Launcher-Helpers.ps1')
+    $null=Assert-SkyCoopSteamVersion $GameDirectory
+    $null=Get-SkyCoopSteamManifest $GameDirectory
+} elseif (-not $IsolatedCopy) { throw 'Нужно подтверждение тестовой копии или проверенная Steam-установка.' }
 $game = (Resolve-Path -LiteralPath $GameDirectory).Path
 if (-not ((Test-Path -LiteralPath (Join-Path $game 'tld.exe')) -or (Test-Path -LiteralPath (Join-Path $game 'TheLongDark.exe')))) {
     throw 'No tld.exe or TheLongDark.exe found. Select an isolated Windows game copy.'
@@ -17,6 +23,9 @@ foreach ($relative in $allowed) {
     if (-not $expected -or (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) {
         throw "Package file hash mismatch: $relative"
     }
+}
+if ($VerifiedSteamInstall -and -not $OverwriteConfirmed) {
+    foreach ($relative in $allowed) { if (Test-Path -LiteralPath (Join-Path $game $relative)) { throw 'Нужно явное подтверждение замены старого мода через лаунчер.' } }
 }
 $backup = Join-Path $game ('SkyCoop-Backups/' + [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-ffff'))
 foreach ($relative in $allowed) {

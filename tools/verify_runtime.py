@@ -85,12 +85,20 @@ def main():
         name = reference['assembly']
         if name in providers and reference['name'] not in providers[name][2]['types']:
             missing_types.append(reference)
+    ui_targets = {'Il2Cpp.Panel_MainMenu': ['Initialize', 'Enable'],
+                  'Il2Cpp.BasicMenu': ['AddItem', 'Reset', 'SetBackAction'],
+                  'Il2Cpp.Panel_Confirmation': ['OnConfirm', 'OnCancel', 'AddConfirmation']}
+    available = {t['type']: t['methods'] for provider in providers.values() for t in provider[2]['selected_methods']}
+    for type_name, methods in ui_targets.items():
+        for method in methods:
+            if method not in available.get(type_name, []):
+                raise SystemExit('Missing UI patch/API target: ' + type_name + '.' + method)
     report = {
         'loader_version': '0.7.3', 'loader_archive_sha256': LOADER_SHA,
         'compile_loader_version': next(r['version'] for r in mod['references'] if r['name'] == 'MelonLoader'),
         'game_version': '2.55.0', 'assembly_references': records, 'unresolved': unresolved, 'missing_direct_types': missing_types,
         'verification': 'static AssemblyRef name/version and direct TypeRef existence only; not method signatures, API behavior, native ABI, installed runtime or game QA',
-        'multiplayer_tested': False,
+        'multiplayer_tested': False, 'ui_metadata_targets': ui_targets,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + '\n')

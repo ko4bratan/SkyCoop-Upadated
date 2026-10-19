@@ -27,6 +27,15 @@ namespace SkyCoop
                 }
                 catch (Exception error) { DiagnosticLog.Error("startup.file-check", error, Path.GetFileName(file)); }
             }
+            try
+            {
+                string executable = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+                using var stream = File.OpenRead(executable); using var sha = SHA256.Create();
+                DiagnosticLog.Report("game-identity.json", new { gameVersion = Application.version,
+                    unity = Application.unityVersion, exeSha256 = Convert.ToHexString(sha.ComputeHash(stream)).ToLowerInvariant(),
+                    observedUtc = DateTime.UtcNow.ToString("O") });
+            }
+            catch (Exception error) { DiagnosticLog.Error("startup.game-identity", error); }
             // A managed hook cannot catch a native access violation or process termination.
 
         }

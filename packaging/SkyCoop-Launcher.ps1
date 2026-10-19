@@ -20,16 +20,16 @@ function Add-Button($text,$x,$y,$width) {
     $control.Text=$text; $control.Location=New-Object Drawing.Point($x,$y); $control.Size=New-Object Drawing.Size($width,36)
     $form.Controls.Add($control); return $control
 }
-$null=Add-Label 'Выберите отдельную TLD 2.55. Рабочую TLD 2.01–2.02 использовать нельзя.' 18 14 720 28
+$null=Add-Label 'Выберите Steam-установку TLD 2.55. Версия проверяется до установки.' 18 14 720 28
 $folder = New-Object Windows.Forms.ComboBox
 $folder.Location=New-Object Drawing.Point(18,49); $folder.Size=New-Object Drawing.Size(585,30); $folder.DropDownStyle='DropDown'
 $form.Controls.Add($folder)
 $browse=Add-Button 'Обзор…' 615 46 125
 $null=Add-Label 'Автопоиск находит папки, но не подтверждает версию игры. Проверьте 2.55 в меню.' 18 88 720 28
 $ack = New-Object Windows.Forms.CheckBox
-$ack.Text='Это отдельная TLD 2.55 и отдельный тестовый Windows-профиль/профиль сохранений.'
+$ack.Text='Буду использовать тестовое сохранение; понимаю экспериментальный статус мода.'
 $ack.Location=New-Object Drawing.Point(18,122); $ack.Size=New-Object Drawing.Size(720,48); $form.Controls.Add($ack)
-$null=Add-Label 'Копия папки игры сама по себе не изолирует сохранения! Нужен тестовый профиль.' 18 172 720 26
+$null=Add-Label 'Сохранения не удаляются и не переносятся. Старый SkyCoop — только с подтверждением.' 18 172 720 26
 $null=Add-Label 'IPv4 хоста из Radmin VPN:' 18 215 245 26
 $address=New-Object Windows.Forms.TextBox
 $address.Location=New-Object Drawing.Point(266,212); $address.Size=New-Object Drawing.Size(235,28); $form.Controls.Add($address)
@@ -57,7 +57,7 @@ $browse.Add_Click({
 })
 function Start-Seat([string]$Role) {
     try {
-        if (-not $ack.Checked) { throw 'Подтвердите отдельную TLD 2.55 и тестовый профиль сохранений. Рабочую установку 2.01–2.02 выбирать нельзя.' }
+        if (-not $ack.Checked) { throw 'Подтвердите использование тестового сохранения в TLD 2.55. Старую установку 2.01–2.02 выбирать нельзя.' }
         $game=Assert-SkyCoopTarget $folder.Text.Trim()
         if ($Role -eq 'Guest') { Assert-SkyCoopIPv4 $address.Text.Trim() }
         # Не заменять файлы, пока любая копия игры запущена.
@@ -70,7 +70,7 @@ function Start-Seat([string]$Role) {
             $message="В выбранной папке уже есть файлы:`n"+($files -join "`n")+"`n`nЗаменить их экспериментальными? Старые файлы будут сохранены в SkyCoop-Backups. Убедитесь, что это НЕ рабочая TLD 2.01–2.02."
             return [Windows.Forms.MessageBox]::Show($form,$message,'Подтверждение замены файлов','YesNo','Warning','Button2') -eq 'Yes'
         }
-        Install-SkyCoopLauncherFiles $PSScriptRoot $game $confirm
+        Install-SkyCoopLauncherFiles $PSScriptRoot $game $confirm -SteamInstall
         $status.Text='Файлы установлены. Запускаем игру…'
         $script:LaunchedAt=[datetime]::UtcNow; $script:LaunchedFolder=$game
         $options=@{GameDirectory=$game;Role=$Role;IsolatedCopy=$true;DisposableProfile=$true;Port=26950;PassThru=$true}
@@ -94,6 +94,21 @@ $logsButton.Add_Click({
             $status.Text='Диагностика сохранена: '+$dialog.FileName
         }
         $dialog.Dispose()
+    } catch { Show-Error $_.Exception.Message }
+})
+$steamButton=Add-Button 'Установить и открыть через Steam' 206 526 350
+$steamButton.Add_Click({
+    try {
+        if (-not $ack.Checked) { throw 'Подтвердите использование тестового сохранения.' }
+        $game=Assert-SkyCoopSteamVersion $folder.Text.Trim()
+        $null=Get-SkyCoopSteamManifest $game
+        if (@(Get-Process -Name tld,TheLongDark -ErrorAction SilentlyContinue).Count -gt 0) { throw 'Закройте игру перед обновлением мода.' }
+        $loader=Join-Path $game 'MelonLoader/net6/MelonLoader.dll'
+        if (-not (Test-Path -LiteralPath $loader) -or [Reflection.AssemblyName]::GetAssemblyName($loader).Version.ToString() -ne '0.7.3.0') { throw 'Установите MelonLoader 0.7.3 x64 по инструкции; существующий загрузчик автоматически не заменяется.' }
+        $confirm={ param($files) [Windows.Forms.MessageBox]::Show($form,"Заменить файлы мода в Steam-папке? Старые файлы будут сохранены в SkyCoop-Backups. Это может заменить прежний SkyCoop. Продолжить?",'Подтверждение замены','YesNo','Warning','Button2') -eq 'Yes' }
+        Install-SkyCoopLauncherFiles $PSScriptRoot $game $confirm -SteamInstall
+        Start-Process 'steam://run/305620'
+        $status.Text='Запуск через Steam. В главном меню выберите МУЛЬТИПЛЕЕР. Игровое соединение ещё не подтверждено.'
     } catch { Show-Error $_.Exception.Message }
 })
 $help.Add_Click({ try { Start-Process (Join-Path $PSScriptRoot 'LAUNCHER-RU.txt') } catch { Show-Error $_.Exception.Message } })

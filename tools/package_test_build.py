@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def package(output):
     files = {
+        'STEAM-2.55-RU.md': ROOT / 'docs/STEAM-2.55-RU.md',
         'Открыть-SkyCoop.cmd': ROOT / 'packaging/Открыть-SkyCoop.cmd',
         'SkyCoop-Launcher.ps1': ROOT / 'packaging/SkyCoop-Launcher.ps1',
         'Launcher-Helpers.ps1': ROOT / 'packaging/Launcher-Helpers.ps1',
@@ -51,13 +52,13 @@ def package(output):
         'qa': 'compile-verified; managed regressions only; two-player game QA NOT RUN',
         'runtime_ready': False,
         'required_external_assets': [],
-        'default_test_mode': 'opt-in -skycoop-minimal: transport/remote-render probe only',
+        'default_test_mode': 'native main menu: Steam lobby/P2P or UDP; transport/remote-render probe only',
         'optional_character_assets': ['Mods/SkyCoopResources/skycoop-character', 'Mods/SkyCoopResources/character.json'],
         'character_assets_built': False,
         'character_assets_redistributed': False,
         'legacy_full_mode_assets': ['Mods/multiplayerstuff.unity3d', 'Mods/SkyCoop.modcomponent'],
         'loader_pin': '0.7.3 Windows x64; exact experimental candidate, not runtime-certified',
-        'blockers': ['No real two-client game QA', 'Character Unity export NOT RUN; actual game Unity version unknown', 'Full shared-world mode still needs item-pack migration'],
+        'blockers': ['No real two-client game QA', 'Native game UI and Steam ABI/overlay/relay not tested', 'Character Unity export NOT RUN; actual game Unity version unknown', 'Full shared-world mode still needs item-pack migration'],
         'prerequisites': ['The Long Dark 2.55', '.NET 6 Desktop Runtime x64', 'MelonLoader 0.7.3 x64', 'For full legacy mode only: migrated assets and ModComponent stack'],
         'files': {name: hashlib.sha256(data).hexdigest() for name, data in sorted(payloads.items())},
     }

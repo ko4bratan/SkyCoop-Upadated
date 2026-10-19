@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 using MelonLoader;
 
 namespace SkyCoop
@@ -35,7 +36,7 @@ namespace SkyCoop
             try
             {
                 types = MinimalSurvival.Enabled
-                    ? typeof(RuntimeDiagnostics).GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)
+                    ? new List<Type>(typeof(RuntimeDiagnostics).GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)).Concat(typeof(MultiplayerMenu).GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)).ToArray()
                     : typeof(PatchLoader).Assembly.GetTypes();
             }
             catch (ReflectionTypeLoadException e)

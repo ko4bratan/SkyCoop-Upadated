@@ -41,11 +41,12 @@ function Assert-SkyCoopTarget([string]$GameDirectory) {
     if ($version -match '^2\.(01|02)(\D|$)') { throw 'Обнаружена старая версия 2.01–2.02. Установка и запуск запрещены: выберите отдельную TLD 2.55.' }
     return $game
 }
-function Install-SkyCoopLauncherFiles([string]$PackageDirectory,[string]$GameDirectory,[scriptblock]$ConfirmOverwrite) {
+function Install-SkyCoopLauncherFiles([string]$PackageDirectory,[string]$GameDirectory,[scriptblock]$ConfirmOverwrite,[switch]$SteamInstall) {
+    if ($SteamInstall) { $null=Assert-SkyCoopSteamVersion $GameDirectory; $null=Get-SkyCoopSteamManifest $GameDirectory }
     $owned = @('Mods/SkyCoop.dll','Mods/SkyCoop.pdb','UserLibs/Steamworks.NET.dll')
     $existing = @($owned | Where-Object { Test-Path -LiteralPath (Join-Path $GameDirectory $_) })
     if ($existing.Count -gt 0 -and -not (& $ConfirmOverwrite $existing)) { throw 'Замена файлов отменена. Установка не изменена.' }
-    & (Join-Path $PackageDirectory 'Install-Experimental.ps1') -GameDirectory $GameDirectory -IsolatedCopy | Out-Null
+    & (Join-Path $PackageDirectory 'Install-Experimental.ps1') -GameDirectory $GameDirectory -IsolatedCopy:(-not $SteamInstall) -VerifiedSteamInstall:$SteamInstall -OverwriteConfirmed | Out-Null
 }
 function Get-SkyCoopConnectionStatus([string]$GameDirectory,[datetime]$Since) {
     $path = Join-Path $GameDirectory 'UserData/SkyCoop/Diagnostics/minimal-state.json'
@@ -90,4 +91,30 @@ function Export-SkyCoopDiagnostics([string]$GameDirectory,[string]$Destination) 
         [IO.File]::WriteAllText((Join-Path $temp 'README.txt'), 'Диагностика экспериментального SkyCoop 2.55. Сохранения и игровые ресурсы не включены. Логи могут содержать IP, имена и локальные пути. Проверьте содержимое перед отправкой. Player.log относится к текущему Windows-профилю и может быть от другого запуска.')
         Compress-Archive -Path (Join-Path $temp '*') -DestinationPath $Destination -ErrorAction Stop
     } finally { Remove-Item -LiteralPath $temp -Recurse -Force }
+}
+
+function Assert-SkyCoopSteamVersion([string]$GameDirectory) {
+    $game=Assert-SkyCoopTarget $GameDirectory
+    $exe=Join-Path $game 'tld.exe'
+    $version=[Diagnostics.FileVersionInfo]::GetVersionInfo($exe).ProductVersion
+    $verified=$version -match '^2\.55(?:\.\d+)*(?:\s.*)?$'
+    $identity=Join-Path $game 'UserData/SkyCoop/Diagnostics/game-identity.json'
+    if (-not $verified -and (Test-Path -LiteralPath $identity)) {
+        $record=[IO.File]::ReadAllText($identity) | ConvertFrom-Json
+        $verified=($record.gameVersion -match '^2\.55(?:\.\d+)*$') -and ($record.exeSha256 -eq (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant())
+    }
+    if (-not $verified) {
+        throw 'Версия 2.55 не подтверждена. Файлы не изменены. Нужны метаданные версии 2.55 либо game-identity.json от этой же игры с совпадающим SHA256 tld.exe. Файловая версия Unity и Steam buildid сами по себе недостаточны. См. STEAM-2.55-RU.md.'
+    }
+    return $game
+}
+function Get-SkyCoopSteamManifest([string]$GameDirectory) {
+    $game=(Resolve-Path -LiteralPath $GameDirectory).Path
+    $apps=Split-Path (Split-Path $game)
+    $path=Join-Path $apps 'appmanifest_305620.acf'
+    if (-not (Test-Path -LiteralPath $path)) { throw 'Не найдена Steam-запись The Long Dark для выбранной папки.' }
+    $text=[IO.File]::ReadAllText($path)
+    $match=[regex]::Match($text,'"installdir"\s+"([^"]+)"')
+    if (-not $match.Success -or [IO.Path]::GetFullPath((Join-Path $apps ('common/'+$match.Groups[1].Value))) -ne $game) { throw 'Выбранная папка не совпадает с установкой Steam. Запуск через Steam отменён.' }
+    return $path
 }

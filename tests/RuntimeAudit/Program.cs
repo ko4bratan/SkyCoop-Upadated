@@ -15,7 +15,7 @@ static object Inspect(string path)
     {
         var type = reader.GetTypeDefinition(handle);
         string name = reader.GetString(type.Namespace) + "." + reader.GetString(type.Name);
-        if (name == "UnityEngine.Application" || name == "MelonLoader.MelonMod")
+        if (name == "UnityEngine.Application" || name == "MelonLoader.MelonMod" || name == "Il2Cpp.Panel_MainMenu" || name == "Il2Cpp.BasicMenu" || name == "Il2Cpp.Panel_Confirmation")
             methods.Add(new { type = name, methods = type.GetMethods().Select(h => reader.GetString(reader.GetMethodDefinition(h).Name)).ToArray() });
     }
     var types = reader.TypeDefinitions.Select(h => reader.GetTypeDefinition(h))

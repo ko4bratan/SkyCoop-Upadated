@@ -26,6 +26,15 @@ try {
     if ((Get-SkyCoopConnectionStatus $game ([datetime]::UtcNow.AddMinutes(-1))) -notmatch '10 пакетов') { throw 'Не показаны реальные координаты.' }
     (Get-Item $report).LastWriteTimeUtc=[datetime]::UtcNow.AddMinutes(-1)
     if ((Get-SkyCoopConnectionStatus $game ([datetime]::UtcNow.AddMinutes(-2))) -notmatch '15 секунд') { throw 'Устаревшая связь показана как активная.' }
+    # Подтверждение версии привязано к SHA256 именно выбранного исполняемого файла.
+    $blocked=$false; try { Assert-SkyCoopSteamVersion $game } catch { $blocked=$true }
+    if (-not $blocked) { throw 'Принята неизвестная версия игры.' }
+    $identity=Join-Path $diagnostics 'game-identity.json'
+    @{gameVersion='2.55';exeSha256=(Get-FileHash (Join-Path $game 'tld.exe')).Hash.ToLowerInvariant()} | ConvertTo-Json | Set-Content $identity
+    $null=Assert-SkyCoopSteamVersion $game
+    Add-Content (Join-Path $game 'tld.exe') 'изменение после обновления'
+    $blocked=$false; try { Assert-SkyCoopSteamVersion $game } catch { $blocked=$true }
+    if (-not $blocked) { throw 'Принята устаревшая проверка версии после изменения exe.' }
     Set-Content (Join-Path $game 'secret-save.sav') 'Не включать'
     $zip=Join-Path $root 'logs.zip'
     Export-SkyCoopDiagnostics $game $zip
